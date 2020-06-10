@@ -1,0 +1,18 @@
+base_url = "https://jie.sh"
+compile_sass = true
+title = "jie.sh"
+description = "陈杰的小站"
+highlight_code = true
+generate_feed = true
+build_search_index = true
+theme = "hyde"
+
+[extra]
+hyde_sticky = true
+hyde_reverse = false
+hyde_theme = "theme-base-0d"
+hyde_links = [
+    {url = "/about", name = "About"},
+    {url = "https://c.jie.sh", name = "给忙碌者的育儿攻略"},
+    {url = "https://weibo.com/u/1763952531", name = "微博"},
+]
