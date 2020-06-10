@@ -1,0 +1,10 @@
+{% extends "index.html" %}
+
+{% block content %}
+<h1 style="margin: 0;">{% block sub_title %}{% endblock %}</h1>
+<p>
+    {% for term in terms %}
+    <a href="{{ term.permalink }}" style="margin: auto 10px;">{{ term.name }}</a>
+    {% endfor %}
+</p>
+{% endblock %}

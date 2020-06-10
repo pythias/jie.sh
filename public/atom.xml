@@ -1,0 +1,36 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<feed xmlns="http://www.w3.org/2005/Atom" xml:lang="en">
+	<title>jie.sh</title>
+	<subtitle>陈杰的小站，记录生活点滴、挖坑和填坑经历、修路和寻山过程等等，转载需注明来源</subtitle>
+	<link href="http://127.0.0.1:1111/atom.xml" rel="self" type="application/atom+xml"/>
+	<link href="http://127.0.0.1:1111"/>
+	<generator uri="https://www.getzola.org/">Zola</generator>
+	<updated>2020-06-10T19:49:58+00:00</updated>
+	<id>http://127.0.0.1:1111/atom.xml</id>
+	<entry xml:lang="en">
+		<title>读&#x27;驳《阿里「Java开发手册」中的1个bug》？&#x27;</title>
+		<published>2020-06-10T19:49:58+00:00</published>
+		<updated>2020-06-10T19:49:58+00:00</updated>
+		<link href="http://127.0.0.1:1111/log-append/" type="text/html"/>
+		<id>http://127.0.0.1:1111/log-append/</id>
+		<content type="html">&lt;p&gt;今天在Feedly上读到一批InfoQ的文章&lt;a href=&quot;https:&#x2F;&#x2F;xie.infoq.cn&#x2F;article&#x2F;cae1455171caa912d103a5b8e&quot;&gt;驳《阿里「Java开发手册」中的1个bug》？&lt;&#x2F;a&gt;，文中的结论是&amp;quot;&lt;em&gt;本文我们测试了读者提出质疑的字符串拼接和占位符的性能评测，发现占位符方式性能高的观点依然无从考证，所以我们的基本看法还是，使用占位符的方式更加优雅，可以通过更少的代码实现更多的功能；至于性能方面，只能说还不错，但不能说很优秀。&lt;&#x2F;em&gt;&amp;quot;&lt;&#x2F;p&gt;
+&lt;p&gt;突然想写点什么，本着技术人员研究的心态做更详细的分析。&lt;&#x2F;p&gt;
+&lt;h2 id=&quot;xing-neng-ce-shi&quot;&gt;性能测试&lt;&#x2F;h2&gt;
+&lt;p&gt;前些天在review一个同事的代码时发现很多这种写法&lt;&#x2F;p&gt;
+&lt;pre style=&quot;background-color:#2b303b;&quot;&gt;
+&lt;code&gt;&lt;span style=&quot;color:#b48ead;&quot;&gt;if &lt;&#x2F;span&gt;&lt;span style=&quot;color:#c0c5ce;&quot;&gt;(log.&lt;&#x2F;span&gt;&lt;span style=&quot;color:#bf616a;&quot;&gt;isDebugEnabled&lt;&#x2F;span&gt;&lt;span style=&quot;color:#c0c5ce;&quot;&gt;()) {
+    log.&lt;&#x2F;span&gt;&lt;span style=&quot;color:#bf616a;&quot;&gt;debug&lt;&#x2F;span&gt;&lt;span style=&quot;color:#c0c5ce;&quot;&gt;(&amp;quot;&lt;&#x2F;span&gt;&lt;span style=&quot;color:#a3be8c;&quot;&gt;Hello world.&lt;&#x2F;span&gt;&lt;span style=&quot;color:#c0c5ce;&quot;&gt;&amp;quot;);
+}
+&lt;&#x2F;span&gt;&lt;&#x2F;code&gt;&lt;&#x2F;pre&gt;</content>
+	</entry>
+	<entry xml:lang="en">
+		<title>第一篇</title>
+		<published>2020-06-10T14:10:55+00:00</published>
+		<updated>2020-06-10T14:10:55+00:00</updated>
+		<link href="http://127.0.0.1:1111/hello/" type="text/html"/>
+		<id>http://127.0.0.1:1111/hello/</id>
+		<content type="html">&lt;p&gt;近期经常和同事讨论中年危机、第二职业的事情，中间讨论到可以写文章进行积累，也许起步有点晚，但是写的过程本身就是一个提升，不再以文笔不好为由而逃避了。&lt;a href=&quot;https:&#x2F;&#x2F;c.jie.sh&quot;&gt;育儿攻略&lt;&#x2F;a&gt;也有好久没有更新了，动起来，不用在乎太多看法，自己写得不好就慢慢改进，不写终归还是停留在TODO LIST里。&lt;&#x2F;p&gt;
+&lt;p&gt;应该是前天看了一篇文章，里面提到了Zola和Rust，这次的文章用&lt;&#x2F;p&gt;
+</content>
+	</entry>
+</feed>

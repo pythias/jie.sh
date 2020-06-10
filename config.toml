@@ -1,11 +1,16 @@
 base_url = "https://jie.sh"
 compile_sass = true
 title = "jie.sh"
-description = "陈杰的小站"
+description = "陈杰的小站，记录生活点滴、挖坑和填坑经历、修路和寻山过程等等，转载需注明来源"
 highlight_code = true
 generate_feed = true
 build_search_index = true
 theme = "hyde"
+
+taxonomies = [
+    { name = "tags" },
+    { name = "categories" },
+]
 
 [extra]
 hyde_sticky = true
@@ -13,6 +18,8 @@ hyde_reverse = false
 hyde_theme = "theme-base-0d"
 hyde_links = [
     {url = "/about", name = "About"},
+    {url = "/tags", name = "Tags"},
+    {url = "/categories", name = "Categories"},
     {url = "https://c.jie.sh", name = "给忙碌者的育儿攻略"},
-    {url = "https://weibo.com/u/1763952531", name = "微博"},
+    {url = "https://weibo.com/u/1763952531", name = "微博：陈杰要骑车"},
 ]

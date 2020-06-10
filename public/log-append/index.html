@@ -1,0 +1,83 @@
+<!DOCTYPE html>
+<html lang="en">
+    <head>
+      <meta http-equiv="X-UA-Compatible" content="IE=edge">
+      <meta http-equiv="content-type" content="text/html; charset=utf-8">
+
+      <!-- Enable responsiveness on mobile devices-->
+      <!-- viewport-fit=cover is to support iPhone X rounded corners and notch in landscape-->
+      <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1, viewport-fit=cover">
+
+      <title>jie.sh</title>
+
+      <!-- CSS -->
+      <link rel="stylesheet" href="http:&#x2F;&#x2F;127.0.0.1:1111&#x2F;print.css" media="print">
+      <link rel="stylesheet" href="http:&#x2F;&#x2F;127.0.0.1:1111&#x2F;poole.css">
+      <link rel="stylesheet" href="http:&#x2F;&#x2F;127.0.0.1:1111&#x2F;hyde.css">
+      <link rel="stylesheet" href="https://fonts.googleapis.com/css?family=PT+Sans:400,400italic,700|Abril+Fatface">
+
+      
+        <link rel="alternate" type="application/atom+xml" title="RSS" href="http://127.0.0.1:1111/atom.xml">
+      
+
+      
+      
+    </head>
+
+    <body class="theme-base-0d ">
+        
+            <div class="sidebar">
+                <div class="container sidebar-sticky">
+                    <div class="sidebar-about">
+                        
+                            <a href="http:&#x2F;&#x2F;127.0.0.1:1111"><h1>jie.sh</h1></a>
+                            
+                            <p class="lead">陈杰的小站，记录生活点滴、挖坑和填坑经历、修路和寻山过程等等，转载需注明来源</p>
+                            
+                        
+                    </div>
+
+                    <ul class="sidebar-nav">
+                        
+                        
+                        <li class="sidebar-nav-item"><a href="&#x2F;about">About</a></li>
+                        
+                        <li class="sidebar-nav-item"><a href="&#x2F;tags">Tags</a></li>
+                        
+                        <li class="sidebar-nav-item"><a href="&#x2F;categories">Categories</a></li>
+                        
+                        <li class="sidebar-nav-item"><a href="https:&#x2F;&#x2F;c.jie.sh">给忙碌者的育儿攻略</a></li>
+                        
+                        <li class="sidebar-nav-item"><a href="https:&#x2F;&#x2F;weibo.com&#x2F;u&#x2F;1763952531">微博：陈杰要骑车</a></li>
+                        
+                        
+                    </ul>
+                </div>
+            </div>
+        
+
+        <div class="content container">
+            
+<div class="post">
+  <h1 class="post-title">读&#x27;驳《阿里「Java开发手册」中的1个bug》？&#x27;有感</h1>
+  <span class="post-date">2020-06-10</span>
+  <p>//TODO 还没写完</p>
+<p>今天在Feedly上读到一批InfoQ的文章<a href="https://xie.infoq.cn/article/cae1455171caa912d103a5b8e">驳《阿里「Java开发手册」中的1个bug》？</a>，文中的结论是&quot;<em>本文我们测试了读者提出质疑的字符串拼接和占位符的性能评测，发现占位符方式性能高的观点依然无从考证，所以我们的基本看法还是，使用占位符的方式更加优雅，可以通过更少的代码实现更多的功能；至于性能方面，只能说还不错，但不能说很优秀。</em>&quot;</p>
+<p>突然想写点什么，本着技术人员研究的心态做更详细的分析。</p>
+<h2 id="xing-neng-ce-shi">性能测试</h2>
+<h2 id="pin-jie-huan-shi-zhan-wei-fu">拼接还是占位符</h2>
+<h2 id="debugri-zhi-shu-chu">DEBUG日志输出</h2>
+<p>前些天在review一个同事的代码时发现很多这种写法</p>
+<pre style="background-color:#2b303b;">
+<code><span style="color:#b48ead;">if </span><span style="color:#c0c5ce;">(log.</span><span style="color:#bf616a;">isDebugEnabled</span><span style="color:#c0c5ce;">()) {
+    log.</span><span style="color:#bf616a;">debug</span><span style="color:#c0c5ce;">(&quot;</span><span style="color:#a3be8c;">Hello world.</span><span style="color:#c0c5ce;">&quot;);
+}
+</span></code></pre><h2 id="jie-lun">结论</h2>
+
+</div>
+
+        </div>
+
+    <script src="/livereload.js?port=1031&amp;mindelay=10"></script></body>
+
+</html>

@@ -1,0 +1,11 @@
+{% extends "index.html" %}
+{% import "macros/pages.html" as pages %}
+
+{% block content %}
+<a href="../">&laquo; back to {% block sub_title %}{% endblock %}</a>
+<h1 style="margin: 0;">articles under <code>{{ term.name }}</code></h1>
+<p></p>
+
+{{ pages::list_type_pages(pages=term.pages) }}
+
+{% endblock %}

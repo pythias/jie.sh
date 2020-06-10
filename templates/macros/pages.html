@@ -1,0 +1,15 @@
+{% macro list_type_pages(pages) %}
+<div class="posts">
+    {% for page in pages | reverse %}
+    <div class="post">
+        <h3 class="post-title">
+            <a href="{{ page.permalink }}">
+                {{ page.title }}
+            </a>
+        </h3>
+
+        <span class="post-date">{{ page.date | date(format="%Y-%m-%d") }}</span>
+    </div>
+    {% endfor %}
+</div>
+{% endmacro list_type_pages %}
