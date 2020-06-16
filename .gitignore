@@ -1,1 +1,15 @@
+# Zola
 public/
+
+# JAVA
+*.class
+*.jar
+
+# Maven
+target/
+.flattened-pom.xml
+dependency-reduced-pom.xml
+.factorypath
+
+# OS
+.DS_Store
