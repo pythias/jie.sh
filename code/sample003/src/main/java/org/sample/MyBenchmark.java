@@ -31,55 +31,61 @@
 
 package org.sample;
 
+import org.openjdk.jmh.annotations.*;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
 import java.util.concurrent.TimeUnit;
 
-import org.openjdk.jmh.annotations.Benchmark;
-import org.openjdk.jmh.annotations.BenchmarkMode;
-import org.openjdk.jmh.annotations.Fork;
-import org.openjdk.jmh.annotations.Measurement;
-import org.openjdk.jmh.annotations.Mode;
-import org.openjdk.jmh.annotations.Threads;
-import org.openjdk.jmh.annotations.Warmup;
-import org.openjdk.jmh.runner.Runner;
-import org.openjdk.jmh.runner.RunnerException;
-import org.openjdk.jmh.runner.options.Options;
-import org.openjdk.jmh.runner.options.OptionsBuilder;
-import org.openjdk.jmh.runner.options.TimeValue;
-
+@State(Scope.Thread)
 @BenchmarkMode(Mode.Throughput)
 @Warmup(iterations = 3, time = 5, timeUnit = TimeUnit.SECONDS)
 @Measurement(iterations = 3, time = 5, timeUnit = TimeUnit.SECONDS)
 @Threads(3)
 @Fork(value = 3, jvmArgs = {"-Xms1G", "-Xmx1G"})
 public class MyBenchmark {
-    @Benchmark
-    public long testCat() {
-        String a = "";
-        for (int i = 0; i < 10; i++) {
-            a += i;
-        }
-        return a.length();
+    public Logger log = null;
+
+    @Setup
+    public void setup() {
+        log = LoggerFactory.getLogger(MyBenchmark.class);
     }
 
     @Benchmark
-    public long testBuilder() {
-        StringBuilder sb = new StringBuilder();
-        for (int i = 0; i < 10; i++) {
-            sb.append(i);
-        }
-        return sb.toString().length();
+    public void testDebug() {
+        log.debug("Hello.");
     }
 
-    public static void main(String[] args) throws RunnerException {
-        Options options = new OptionsBuilder()
-                .include(MyBenchmark.class.getSimpleName())
-                .forks(2)
-                .threads(2)
-                .warmupIterations(2)
-                .warmupTime(TimeValue.seconds(2))
-                .measurementIterations(2)
-                .measurementTime(TimeValue.seconds(2))
-                .build();
-        new Runner(options).run();
+    @Benchmark
+    public void testDebugWithIf() {
+        if (log.isDebugEnabled()) {
+            log.debug("Hello.");
+        }
+    }
+
+    @Benchmark
+    public void testDebug5() {
+        log.debug("Hello {}, {}, {}, {}, {}.", "one", "two", "three", "four", "five");
+    }
+
+    @Benchmark
+    public void testDebugWithIf5() {
+        if (log.isDebugEnabled()) {
+            log.debug("Hello {}, {}, {}, {}, {}.", "one", "two", "three", "four", "five");
+        }
+    }
+
+    @Benchmark
+    public void testInfo5() {
+        log.info("Hello {}, {}, {}, {}, {}.", "one", "two", "three", "four", "five");
+    }
+
+    @Benchmark
+    public void testInfoBuild5() {
+        StringBuilder sb = new StringBuilder("Hello ");
+        sb.append("one").append(", ").append("two").append(", ");
+        sb.append("three").append(", ").append("four").append(", ");
+        sb.append("five").append(".");
+        log.info(sb.toString());
     }
 }

@@ -1,18 +1,17 @@
 +++
-title = "关于JAVA的性能测试"
+title = "关于Java的性能测试"
 description = "在斤斤计较的过程中提升"
 date = 2020-06-10T21:19:12Z
 
 [taxonomies]
-tags = ["java", "benchmark", "jmh"]
+tags = ["Java", "benchmark", "jmh"]
 categories = ["programming"]
 
 +++
 
-//TODO 还没写完
-//最近更新 2020-06-15 19:35:51
+    还没写完，最近更新 2020-06-17 20:03:49
 
-今天在Feedly上读到一篇InfoQ上的[文章](https://xie.infoq.cn/article/cae1455171caa912d103a5b8e)，针对阿里「Java开发手册」中日志输出规范：
+今天读到一篇InfoQ上的[文章](https://xie.infoq.cn/article/cae1455171caa912d103a5b8e)，针对阿里「Java开发手册」中日志输出规范中关于字符串拼接和占位符的性能提出质疑，规范如下：
 
 ```code
 【强制】在日志输出时，字符串变量之间的拼接使用占位符的方式。
@@ -20,9 +19,7 @@ categories = ["programming"]
 正例：logger.debug("Processing trade with id: {} and symbol: {}", id, symbol);
 ```
 
-中关于字符串拼接和占位符的性能提出质疑。
-
-突然也想写点什么。
+突然也想写点关于性能测试的文章来开启blog
 
 ## 关于性能测试
 
@@ -33,14 +30,14 @@ categories = ["programming"]
 ```php
 $count = 1000000;
 $begin = microtime(true);
-for ($i = 0; $i < $count; $i++) { 
+for ($i = 0; $i < $count; $i++) {
     # code...
 }
 $total_seconds = microtime(true) - $begin;
 $qps = round($count / $total_seconds, 2);
 ```
 
-但到了JAVA发现这么写，得到的结果前面的几次性能明显差于后来的，比如
+但到了Java发现这么写，得到的结果前面的几次性能明显差于后来的，比如
 
 ```java
 public class Sample001 {
@@ -63,7 +60,6 @@ public class Sample001 {
         return a.length();
     }
 }
-
 ```
 
 执行10轮的结果如下：
@@ -82,7 +78,7 @@ Round 008, finished 100000 in 17.646 ms
 Round 009, finished 100000 in 18.273 ms
 ```
 
-大概五次以后性能从约40ms提升至15ms，把代码改一下`int count = 500_000;`验证一下：
+大概五次以后性能从约40ms提升至15ms，把代码改一下`int count = 500_000;`验证一下，确实了当`cat()`执行了五十万次左右的时候性能上了一个台阶：
 
 ```text
 # javac Sample001.java && java -Xms1G -Xmx1G Sample001
@@ -100,9 +96,11 @@ Round 009, finished 500000 in 63.782 ms
 
 为何呢？这就是[JIT](https://www.ibm.com/developerworks/cn/java/j-lo-just-in-time/index.html)的功劳了。
 
-然后[JMH](https://openjdk.java.net/projects/code-tools/jmh/)就登场了，JMH有一个预热（Warmup）的过程，让测试结果更接近真实（当然也许真实使用时并没有达到JIT的阈值，下次分析一下JIT的具体实现和触发）。
+然后[JMH (Java Microbenchmark Harness)](https://openjdk.java.net/projects/code-tools/jmh/)就登场了，JMH有一个预热（Warmup）的过程，预热让逻辑中可优化进入优化状态，让测试结果更接近真实（当然也许真实使用时并没有达到JIT的阈值，回头分析一下JIT的具体实现和触发）。
 
-## 字符串拼接或占位符
+## JMH的使用
+
+使用maven创建一个JMH的工程
 
 ```sh
 mvn archetype:generate \
@@ -114,14 +112,224 @@ mvn archetype:generate \
   -Dversion=1.0
 ```
 
-## 关于DEBUG日志输出
-
-前些天在review一个同事的代码时发现很多这种写法
+添加测试用例，加上标注 @Benchmark
 
 ```java
-if (log.isDebugEnabled()) {
-    log.debug("Hello world.");
+package org.sample;
+
+import org.openjdk.jmh.annotations.Benchmark;
+
+public class MyBenchmark {
+    @Benchmark
+    public long testCat() {
+        String a = "";
+        for (int i = 0; i < 10; i++) {
+            a += i;
+        }
+        return a.length();
+    }
+
+    @Benchmark
+    public long testBuilder() {
+        StringBuilder sb = new StringBuilder();
+        for (int i = 0; i < 10; i++) {
+            sb.append(i);
+        }
+        return sb.toString().length();
+    }
 }
 ```
 
+编译后执行，结果如下：
+
+```sh
+mvn clean package
+java -jar target/benchmarks.jar
+# JMH version: 1.21
+# VM version: JDK 1.8.0_202, Java HotSpot(TM) 64-Bit Server VM, 25.202-b08
+# VM invoker: /Library/Java/JavaVirtualMachines/jdk1.8.0_202.jdk/Contents/Home/jre/bin/java
+# VM options: <none>
+# Warmup: 5 iterations, 10 s each
+# Measurement: 5 iterations, 10 s each
+# Timeout: 10 min per iteration
+# Threads: 1 thread, will synchronize iterations
+# Benchmark mode: Throughput, ops/time
+# Benchmark: org.sample.MyBenchmark.testBuilder
+
+# Run progress: 0.00% complete, ETA 00:16:40
+# Fork: 1 of 5
+# Warmup Iteration   1: 29079775.131 ops/s
+# Warmup Iteration   2: 12154565.069 ops/s
+# Warmup Iteration   3: 12958559.652 ops/s
+# Warmup Iteration   4: 12721430.371 ops/s
+# Warmup Iteration   5: 13166449.495 ops/s
+Iteration   1: 13021760.958 ops/s
+Iteration   2: 13536462.453 ops/s
+Iteration   3: 13469708.323 ops/s
+Iteration   4: 13416607.185 ops/s
+Iteration   5: 12752605.574 ops/s
+
+...
+
+Benchmark                 Mode  Cnt         Score        Error  Units
+MyBenchmark.testBuilder  thrpt   25  13265478.693 ± 697017.778  ops/s
+MyBenchmark.testCat      thrpt   25   2469800.468 ± 138938.866  ops/s
+```
+
+例子中跑了两个测试一个是 MyBenchmark.testCat 和 MyBenchmark.testBuilder
+
+- `# Fork: 1 of 5`: 每个5次测试（)
+- `# Warmup: 5 iterations, 10 s each`: 每次测试包含5次10秒的预热
+- `# Measurement: 5 iterations, 10 s each`: 每次测试包含5轮10秒的测试
+- `# Threads: 1 thread, will synchronize iterations`: 每次测试开1个线程
+- `# Run complete. Total time: 00:16:45`: 一共花了约16分钟
+
+通过参数或者标注可以对这几个数值进行修改。
+
+### 通过参数调整
+
+```java
+    public static void main(String[] args) throws RunnerException {
+        Options options = new OptionsBuilder()
+                .include(MyBenchmark.class.getSimpleName())
+                .forks(2)
+                .threads(2)
+                .warmupIterations(2)
+                .warmupTime(TimeValue.seconds(2))
+                .measurementBatchSize(2)
+                .measurementTime(TimeValue.seconds(2))
+                .build();
+        new Runner(options).run();
+    }
+```
+
+执行结果如下：
+
+```sh
+➜  sample002 git:(code) ✗ java -cp target/benchmarks.jar org.sample.MyBenchmark
+# JMH version: 1.21
+# VM version: JDK 1.8.0_202, Java HotSpot(TM) 64-Bit Server VM, 25.202-b08
+# VM invoker: /Library/Java/JavaVirtualMachines/jdk1.8.0_202.jdk/Contents/Home/jre/bin/java
+# VM options: <none>
+# Warmup: 2 iterations, 2 s each
+# Measurement: 2 iterations, 2 s each
+# Timeout: 10 min per iteration
+# Threads: 2 threads, will synchronize iterations
+# Benchmark mode: Throughput, ops/time
+# Benchmark: org.sample.MyBenchmark.testBuilder
+```
+
+### 通过标注调整
+
+```java
+@BenchmarkMode(Mode.Throughput)
+@Warmup(iterations = 3, time = 5, timeUnit = TimeUnit.SECONDS)
+@Measurement(iterations = 3, time = 5, timeUnit = TimeUnit.SECONDS)
+@Threads(3)
+@Fork(3)
+public class MyBenchmark {
+
+}
+```
+
+执行结果如下：
+
+```sh
+➜  sample002 git:(code) ✗ java -jar target/benchmarks.jar
+# JMH version: 1.21
+# VM version: JDK 1.8.0_202, Java HotSpot(TM) 64-Bit Server VM, 25.202-b08
+# VM invoker: /Library/Java/JavaVirtualMachines/jdk1.8.0_202.jdk/Contents/Home/jre/bin/java
+# VM options: <none>
+# Warmup: 3 iterations, 5 s each
+# Measurement: 3 iterations, 5 s each
+# Timeout: 10 min per iteration
+# Threads: 3 threads, will synchronize iterations
+# Benchmark mode: Throughput, ops/time
+# Benchmark: org.sample.MyBenchmark.testBuilder
+```
+
+另外在输出中还发现 `# VM options: <none>`，VM参数也可以通过以上两种方式进行调整，Fork标注中可以添加参数，如`@Fork(value = 3, jvmArgs = {"-Xms1G", "-Xmx1G"})`等。
+
+## 日志输出
+
+前面两个章节说了Java如何做性能测试，从古老的循环执行统计时间到使用JMH工具进行预热和执行。回到文章开头说的两个日志的使用方法字符串拼接与占位符性能问题，文章也解析了slf4j的源码，细节不再阐述。
+
+六个用例，分别是
+
+- testDebug: 普通DEBUG
+- testDebugWithIf: 普通DEBUG，判断等级
+- testDebug5: 普通DEBUG，五个参数
+- testDebugWithIf5: 普通DEBUG，五个参数，判断等级
+- testInfo5: 普通INFO，五个参数，占位符
+- testInfoBuild5: 普通INFO，五个参数，拼接
+
+[代码](https://github.com/pythias/jie.sh/tree/code/code/sample003)如下：
+
+```java
+    @Benchmark
+    public void testDebug() {
+        log.debug("Hello.");
+    }
+
+    @Benchmark
+    public void testDebugWithIf() {
+        if (log.isDebugEnabled()) {
+            log.debug("Hello.");
+        }
+    }
+
+    @Benchmark
+    public void testDebug5() {
+        log.debug("Hello {}, {}, {}, {}, {}.", "one", "two", "three", "four", "five");
+    }
+
+    @Benchmark
+    public void testDebugWithIf5() {
+        if (log.isDebugEnabled()) {
+            log.debug("Hello {}, {}, {}, {}, {}.", "one", "two", "three", "four", "five");
+        }
+    }
+
+    @Benchmark
+    public void testInfo5() {
+        log.info("Hello {}, {}, {}, {}, {}.", "one", "two", "three", "four", "five");
+    }
+
+    @Benchmark
+    public void testInfoBuild5() {
+        StringBuilder sb = new StringBuilder("Hello ");
+        sb.append("one").append(", ").append("two").append(", ");
+        sb.append("three").append(", ").append("four").append(", ");
+        sb.append("five").append(".");
+        log.info(sb.toString());
+    }
+```
+
+执行结果如下：
+
+```text
+# Run complete. Total time: 00:10:43
+Benchmark                      Mode  Cnt           Score           Error  Units
+MyBenchmark.testDebug         thrpt    9  1130576386.310 ± 111537882.560  ops/s
+MyBenchmark.testDebug5        thrpt    9  1191771199.022 ±  82513902.896  ops/s
+MyBenchmark.testDebugWithIf   thrpt    9  1352370214.289 ±  20520868.587  ops/s
+MyBenchmark.testDebugWithIf5  thrpt    9  1354268920.782 ±  68562339.128  ops/s
+MyBenchmark.testInfo          thrpt    9      147552.886 ±     10006.418  ops/s
+MyBenchmark.testInfo5         thrpt    9      137841.892 ±     13788.722  ops/s
+MyBenchmark.testInfoBuild5    thrpt    9      148135.404 ±     13144.961  ops/s
+```
+
 ## 结论
+
+
+
+测试环境（测试结果不是很严谨，因为测试时还在作别的，特别是写日志时磁盘IO影响较大，但相对数据及整体结论还是没有太多影响）：
+    iMac (Retina 4K, 21.5-inch, Late 2015)
+    3.1 GHz Quad-Core Intel Core i5
+    8 GB 1867 MHz DDR3
+
+参考:
+
+1. [JIT](https://www.ibm.com/developerworks/cn/java/j-lo-just-in-time/index.html)
+2. [JMH (Java Microbenchmark Harness)](https://openjdk.java.net/projects/code-tools/jmh/)
+3. [驳《阿里「Java 开发手册」中的 1 个 bug》？](https://xie.infoq.cn/article/cae1455171caa912d103a5b8e)

@@ -4,12 +4,20 @@ public/
 # JAVA
 *.class
 *.jar
+*.log
 
 # Maven
 target/
 .flattened-pom.xml
 dependency-reduced-pom.xml
 .factorypath
+
+# Idea
+.classpath
+.project
+.settings/
+.idea/
+*.iml
 
 # OS
 .DS_Store
