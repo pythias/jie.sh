@@ -356,10 +356,15 @@ if (log.isDebugEnabled()) {
 2. 无需判断debugEnabled，直接使用log->debug()，性能差异可忽略；
 3. 一个方法里参数里执行复杂过程是错误写法。
 
-测试环境（测试结果不是很严谨，因为测试时还在作别的，特别是写日志时磁盘IO影响较大，但相对数据及整体结论还是没有太多影响）：
-    iMac (Retina 4K, 21.5-inch, Late 2015)
-    3.1 GHz Quad-Core Intel Core i5
-    8 GB 1867 MHz DDR3
+---
+
+*测试环境（测试结果不是很严谨，因为测试时还在作别的，特别是写日志时磁盘IO影响较大，但相对数据及整体结论还是没有太多影响）：*
+
+```text
+iMac (Retina 4K, 21.5-inch, Late 2015)
+3.1 GHz Quad-Core Intel Core i5
+8 GB 1867 MHz DDR3
+```
 
 参考:
 
