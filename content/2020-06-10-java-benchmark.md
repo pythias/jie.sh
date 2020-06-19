@@ -1,15 +1,13 @@
 +++
 title = "关于Java的性能测试"
 description = "在斤斤计较的过程中提升"
-date = 2020-06-10T21:19:12Z
+date = 2020-06-19T11:06:17Z
 
 [taxonomies]
 tags = ["Java", "benchmark", "jmh"]
 categories = ["programming"]
 
 +++
-
-    还没写完，最近更新 2020-06-17 20:03:49
 
 今天读到一篇InfoQ上的[文章](https://xie.infoq.cn/article/cae1455171caa912d103a5b8e)，针对阿里「Java开发手册」中日志输出规范中关于字符串拼接和占位符的性能提出质疑，规范如下：
 
@@ -189,18 +187,18 @@ MyBenchmark.testCat      thrpt   25   2469800.468 ± 138938.866  ops/s
 ### 通过参数调整
 
 ```java
-    public static void main(String[] args) throws RunnerException {
-        Options options = new OptionsBuilder()
-                .include(MyBenchmark.class.getSimpleName())
-                .forks(2)
-                .threads(2)
-                .warmupIterations(2)
-                .warmupTime(TimeValue.seconds(2))
-                .measurementBatchSize(2)
-                .measurementTime(TimeValue.seconds(2))
-                .build();
-        new Runner(options).run();
-    }
+public static void main(String[] args) throws RunnerException {
+    Options options = new OptionsBuilder()
+            .include(MyBenchmark.class.getSimpleName())
+            .forks(2)
+            .threads(2)
+            .warmupIterations(2)
+            .warmupTime(TimeValue.seconds(2))
+            .measurementBatchSize(2)
+            .measurementTime(TimeValue.seconds(2))
+            .build();
+    new Runner(options).run();
+}
 ```
 
 执行结果如下：
@@ -257,52 +255,52 @@ public class MyBenchmark {
 六个用例，分别是
 
 - testDebug: 普通DEBUG
-- testDebugWithIf: 普通DEBUG，判断等级
-- testDebug5: 普通DEBUG，五个参数
-- testDebugWithIf5: 普通DEBUG，五个参数，判断等级
-- testInfo5: 普通INFO，五个参数，占位符
-- testInfoBuild5: 普通INFO，五个参数，拼接
+- testDebugWithIf: 添加判断的DEBUG
+- testDebug5: 五个参数占位符的DEBUG
+- testDebugWithIf5: 添加判断、五个参数占位符的DEBUG
+- testInfo5: 五个参数占位符的INFO
+- testInfoBuild5: 五个参数拼接的INFO
 
 [代码](https://github.com/pythias/jie.sh/tree/code/code/sample003)如下：
 
 ```java
-    @Benchmark
-    public void testDebug() {
+@Benchmark
+public void testDebug() {
+    log.debug("Hello.");
+}
+
+@Benchmark
+public void testDebugWithIf() {
+    if (log.isDebugEnabled()) {
         log.debug("Hello.");
     }
+}
 
-    @Benchmark
-    public void testDebugWithIf() {
-        if (log.isDebugEnabled()) {
-            log.debug("Hello.");
-        }
-    }
+@Benchmark
+public void testDebug5() {
+    log.debug("Hello {}, {}, {}, {}, {}.", "one", "two", "three", "four", "five");
+}
 
-    @Benchmark
-    public void testDebug5() {
+@Benchmark
+public void testDebugWithIf5() {
+    if (log.isDebugEnabled()) {
         log.debug("Hello {}, {}, {}, {}, {}.", "one", "two", "three", "four", "five");
     }
+}
 
-    @Benchmark
-    public void testDebugWithIf5() {
-        if (log.isDebugEnabled()) {
-            log.debug("Hello {}, {}, {}, {}, {}.", "one", "two", "three", "four", "five");
-        }
-    }
+@Benchmark
+public void testInfo5() {
+    log.info("Hello {}, {}, {}, {}, {}.", "one", "two", "three", "four", "five");
+}
 
-    @Benchmark
-    public void testInfo5() {
-        log.info("Hello {}, {}, {}, {}, {}.", "one", "two", "three", "four", "five");
-    }
-
-    @Benchmark
-    public void testInfoBuild5() {
-        StringBuilder sb = new StringBuilder("Hello ");
-        sb.append("one").append(", ").append("two").append(", ");
-        sb.append("three").append(", ").append("four").append(", ");
-        sb.append("five").append(".");
-        log.info(sb.toString());
-    }
+@Benchmark
+public void testInfoBuild5() {
+    StringBuilder sb = new StringBuilder("Hello ");
+    sb.append("one").append(", ").append("two").append(", ");
+    sb.append("three").append(", ").append("four").append(", ");
+    sb.append("five").append(".");
+    log.info(sb.toString());
+}
 ```
 
 执行结果如下：
@@ -314,14 +312,49 @@ MyBenchmark.testDebug         thrpt    9  1130576386.310 ± 111537882.560  ops/s
 MyBenchmark.testDebug5        thrpt    9  1191771199.022 ±  82513902.896  ops/s
 MyBenchmark.testDebugWithIf   thrpt    9  1352370214.289 ±  20520868.587  ops/s
 MyBenchmark.testDebugWithIf5  thrpt    9  1354268920.782 ±  68562339.128  ops/s
-MyBenchmark.testInfo          thrpt    9      147552.886 ±     10006.418  ops/s
 MyBenchmark.testInfo5         thrpt    9      137841.892 ±     13788.722  ops/s
 MyBenchmark.testInfoBuild5    thrpt    9      148135.404 ±     13144.961  ops/s
 ```
 
+### 场景1：开发的DEBUG日志怎么打
+
+添加`isDebugEnabled()`的判断是否有必要
+
+```java
+if (log.isDebugEnabled()) {
+    log.debug("Hello.");
+}
+```
+
+对比用例 `testDebug5` VS `testDebugWithIf5` 或者 `testDebug` VS `testDebugWithIf`，当日志不需要输出时过程极快不到1纳米一次，多了判断的过程也就是让执行时间从0.839纳秒/次提升至0.739纳秒/次，虽然11.9%那么多的提升，但0.01纳米对于业务逻辑的毫秒处理过程来说可以忽略不计。
+
+但有些日志记录中参数是其他方法，这种情况就另说了，比如：
+
+```java
+if (log.isDebugEnabled()) {
+    log.debug("Hello, {}", obj->getSomeValue());
+}
+```
+
+一般 `obj->getSomeValue()` 也只是获取对象的属性，如果 `obj->getSomeValue()` 是一个复杂的过程，这么设计也太不讲究太不规范了。
+
+### 场景2：一个参数和五个参数的区别
+
+对比方法执行时，传输参数数量对于性能的差异，想通过`testDebug` VS `testDebug5`来对比，但是这个测试用例不严禁，干扰太多，得空再进行针对性的分析。
+
+### 场景3：拼接还是占位符
+
+源码里占位符的实现也是采用了拼接的方式，只是在代码编写是更加优雅，用例 `testInfo5` VS `testInfoBuild5` （差异因本机IO影响较大忽略前后）两者性能基本在6.75微秒/次，基本所有时间都消耗在要么有磁盘IO要么有网络IO的操作（当然我们可以定期再flush各种方式进行优化），所以拼接还是占位符那点性能差异也可以忽略。
+
+### 场景4：写日志和不写日志
+
+`testDebug5` VS `testInfo5`
+
 ## 结论
 
-
+1. 用占位符，写起来好看；
+2. 无需判断debugEnabled，直接使用log->debug()，性能差异可忽略；
+3. 一个方法里参数里执行复杂过程是错误写法。
 
 测试环境（测试结果不是很严谨，因为测试时还在作别的，特别是写日志时磁盘IO影响较大，但相对数据及整体结论还是没有太多影响）：
     iMac (Retina 4K, 21.5-inch, Late 2015)
