@@ -17,7 +17,7 @@ name: Lint Code Base
 on:
   push:
     branches-ignore:
-      - 'master'
+      - "master"
 
 ###############
 # Set the Job #
@@ -33,16 +33,14 @@ jobs:
     # Load all steps #
     ##################
     steps:
-      ##########################
-      # Checkout the code base #
-      ##########################
-      - name: Checkout Code
+      - name: Checkout code
         uses: actions/checkout@v4
+        with:
+          # super-linter needs the full git history to get the
+          # list of files that changed across commits
+          fetch-depth: 0
 
-      ################################
-      # Run Linter against code base #
-      ################################
-      - name: Lint Code Base
-        uses: github/super-linter@v6.4.1
+      - name: Super-linter
+        uses: super-linter/super-linter@v6.4.1 # x-release-please-version
         env:
           VALIDATE_MD: true
