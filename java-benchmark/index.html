@@ -1,0 +1,361 @@
+<!DOCTYPE html>
+<html lang="en">
+    <head>
+      <meta http-equiv="X-UA-Compatible" content="IE=edge">
+      <meta http-equiv="content-type" content="text/html; charset=utf-8">
+
+      <!-- Enable responsiveness on mobile devices-->
+      <!-- viewport-fit=cover is to support iPhone X rounded corners and notch in landscape-->
+      <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1, viewport-fit=cover">
+
+      <title>jie.sh</title>
+
+      <!-- CSS -->
+      <link rel="stylesheet" href="https://jie.sh/print.css" media="print">
+      <link rel="stylesheet" href="https://jie.sh/poole.css">
+      <link rel="stylesheet" href="https://jie.sh/hyde.css">
+      <link rel="stylesheet" href="https://fonts.googleapis.com/css?family=PT+Sans:400,400italic,700|Abril+Fatface">
+
+      
+
+      
+      
+    </head>
+
+    <body class="theme-base-0d ">
+        
+            <div class="sidebar">
+                <div class="container sidebar-sticky">
+                    <div class="sidebar-about">
+                        
+                            <a href="https:&#x2F;&#x2F;jie.sh"><h1>jie.sh</h1></a>
+                            
+                            <p class="lead">走出去，看看世界</p>
+                            
+                        
+                    </div>
+
+                    <ul class="sidebar-nav">
+                        
+                        
+                        <li class="sidebar-nav-item"><a href="&#x2F;tags">Tags</a></li>
+                        
+                        <li class="sidebar-nav-item"><a href="&#x2F;categories">Categories</a></li>
+                        
+                        <li class="sidebar-nav-item"><a href="https:&#x2F;&#x2F;c.jie.sh">给忙碌者的育儿攻略</a></li>
+                        
+                        <li class="sidebar-nav-item"><a href="https:&#x2F;&#x2F;c.jie.sh&#x2F;gallery">多多的作品</a></li>
+                        
+                        <li class="sidebar-nav-item"><a href="https:&#x2F;&#x2F;weibo.com&#x2F;u&#x2F;1763952531">微博：陈杰要骑车</a></li>
+                        
+                        
+                    </ul>
+                </div>
+            </div>
+        
+
+        <div class="content container">
+            
+<div class="post">
+  <h1 class="post-title">关于Java的性能测试</h1>
+  <span class="post-date">2020-06-19</span>
+  <p>今天读到一篇InfoQ上的<a href="https://xie.infoq.cn/article/cae1455171caa912d103a5b8e">文章</a>，针对阿里「Java开发手册」中日志输出规范中关于字符串拼接和占位符的性能提出质疑，规范如下：</p>
+<pre style="background-color:#2b303b;color:#c0c5ce;"><code><span>【强制】在日志输出时，字符串变量之间的拼接使用占位符的方式。
+</span><span>说明：因为 String 字符串的拼接会使用 StringBuilder 的 append()方式，有一定的性能损耗。使用占位符仅是替换动作，可以有效提升性能。
+</span><span>正例：logger.debug(&quot;Processing trade with id: {} and symbol: {}&quot;, id, symbol);
+</span></code></pre>
+<p>突然也想写点关于性能测试的文章来开启blog</p>
+<h2 id="guan-yu-xing-neng-ce-shi">关于性能测试</h2>
+<p>作为经济适用程序员，斤斤计较是其中一个特性「以后说其他更多特性」，能一纳秒完成就不给两纳秒，如何使用更少的时间实现相同功能是需要经常锻炼的砍价能力。</p>
+<p>如何评价效率/性能，从接口至逻辑都有相应的工具进行测试。接口的性能测试这儿不介绍了，如何针对我们写的逻辑也就是一段代码或者一个方法进行测试呢，写N多年前写PHP的时候最常见写法是</p>
+<pre data-lang="php" style="background-color:#2b303b;color:#c0c5ce;" class="language-php "><code class="language-php" data-lang="php"><span>$count = 1000000;
+</span><span>$begin = microtime(true);
+</span><span>for ($i = 0; $i &lt; $count; $i++) {
+</span><span>    # code...
+</span><span>}
+</span><span>$total_seconds = microtime(true) - $begin;
+</span><span>$qps = round($count / $total_seconds, 2);
+</span></code></pre>
+<p>但到了Java发现这么写，得到的结果前面的几次性能明显差于后来的，比如</p>
+<pre data-lang="java" style="background-color:#2b303b;color:#c0c5ce;" class="language-java "><code class="language-java" data-lang="java"><span style="color:#b48ead;">public class </span><span style="color:#ebcb8b;">Sample001 </span><span style="color:#eff1f5;">{
+</span><span style="color:#eff1f5;">    </span><span style="color:#b48ead;">public static void </span><span style="color:#8fa1b3;">main</span><span style="color:#eff1f5;">(</span><span style="color:#ebcb8b;">String</span><span style="color:#b48ead;">[] </span><span style="color:#bf616a;">args</span><span style="color:#eff1f5;">) {
+</span><span style="color:#eff1f5;">        </span><span style="color:#b48ead;">for </span><span style="color:#eff1f5;">(</span><span style="color:#b48ead;">int</span><span style="color:#eff1f5;"> round </span><span>= </span><span style="color:#d08770;">0</span><span style="color:#eff1f5;">; round </span><span>&lt; </span><span style="color:#d08770;">10</span><span style="color:#eff1f5;">; round</span><span>++</span><span style="color:#eff1f5;">) {
+</span><span style="color:#eff1f5;">            </span><span style="color:#b48ead;">long</span><span style="color:#eff1f5;"> begin </span><span>= </span><span style="color:#ebcb8b;">System</span><span style="color:#eff1f5;">.</span><span style="color:#bf616a;">nanoTime</span><span style="color:#eff1f5;">();
+</span><span style="color:#eff1f5;">            </span><span style="color:#b48ead;">int</span><span style="color:#eff1f5;"> count </span><span>= </span><span style="color:#d08770;">100_000</span><span style="color:#eff1f5;">;
+</span><span style="color:#eff1f5;">            </span><span style="color:#b48ead;">for </span><span style="color:#eff1f5;">(</span><span style="color:#b48ead;">int</span><span style="color:#eff1f5;"> i </span><span>= </span><span style="color:#d08770;">0</span><span style="color:#eff1f5;">; i </span><span>&lt;</span><span style="color:#eff1f5;"> count; i</span><span>++</span><span style="color:#eff1f5;">) {
+</span><span style="color:#eff1f5;">                </span><span style="color:#bf616a;">cat</span><span style="color:#eff1f5;">();
+</span><span style="color:#eff1f5;">            }
+</span><span style="color:#eff1f5;">            </span><span style="color:#ebcb8b;">System</span><span style="color:#eff1f5;">.out.</span><span style="color:#bf616a;">printf</span><span style="color:#eff1f5;">(</span><span>&quot;</span><span style="color:#a3be8c;">Round %03d, finished %d in %2.3f ms</span><span style="color:#96b5b4;">\n</span><span>&quot;</span><span style="color:#eff1f5;">, round, count, (</span><span style="color:#ebcb8b;">System</span><span style="color:#eff1f5;">.</span><span style="color:#bf616a;">nanoTime</span><span style="color:#eff1f5;">() </span><span>-</span><span style="color:#eff1f5;"> begin) </span><span>/ </span><span style="color:#d08770;">1_000_000.0</span><span style="color:#eff1f5;">);
+</span><span style="color:#eff1f5;">        }
+</span><span style="color:#eff1f5;">    }
+</span><span style="color:#eff1f5;">
+</span><span style="color:#eff1f5;">    </span><span style="color:#b48ead;">private static long </span><span style="color:#8fa1b3;">cat</span><span style="color:#eff1f5;">() {
+</span><span style="color:#eff1f5;">        </span><span style="color:#ebcb8b;">String</span><span style="color:#eff1f5;"> a </span><span>= &quot;&quot;</span><span style="color:#eff1f5;">;
+</span><span style="color:#eff1f5;">        </span><span style="color:#b48ead;">for </span><span style="color:#eff1f5;">(</span><span style="color:#b48ead;">int</span><span style="color:#eff1f5;"> i </span><span>= </span><span style="color:#d08770;">0</span><span style="color:#eff1f5;">; i </span><span>&lt; </span><span style="color:#d08770;">10</span><span style="color:#eff1f5;">; i</span><span>++</span><span style="color:#eff1f5;">) {
+</span><span style="color:#eff1f5;">            a </span><span>+=</span><span style="color:#eff1f5;"> i;
+</span><span style="color:#eff1f5;">        }
+</span><span style="color:#eff1f5;">        </span><span style="color:#b48ead;">return</span><span style="color:#eff1f5;"> a.</span><span style="color:#bf616a;">length</span><span style="color:#eff1f5;">();
+</span><span style="color:#eff1f5;">    }
+</span><span style="color:#eff1f5;">}
+</span></code></pre>
+<p>执行10轮的结果如下：</p>
+<pre data-lang="bash" style="background-color:#2b303b;color:#c0c5ce;" class="language-bash "><code class="language-bash" data-lang="bash"><span style="color:#65737e;"># javac Sample001.java &amp;&amp; java -Xms1G -Xmx1G Sample001
+</span><span style="color:#bf616a;">Round</span><span> 000, finished 100000 in 40.474 ms
+</span><span style="color:#bf616a;">Round</span><span> 001, finished 100000 in 37.225 ms
+</span><span style="color:#bf616a;">Round</span><span> 002, finished 100000 in 36.471 ms
+</span><span style="color:#bf616a;">Round</span><span> 003, finished 100000 in 35.715 ms
+</span><span style="color:#bf616a;">Round</span><span> 004, finished 100000 in 34.391 ms
+</span><span style="color:#bf616a;">Round</span><span> 005, finished 100000 in 13.165 ms
+</span><span style="color:#bf616a;">Round</span><span> 006, finished 100000 in 14.205 ms
+</span><span style="color:#bf616a;">Round</span><span> 007, finished 100000 in 14.137 ms
+</span><span style="color:#bf616a;">Round</span><span> 008, finished 100000 in 17.646 ms
+</span><span style="color:#bf616a;">Round</span><span> 009, finished 100000 in 18.273 ms
+</span></code></pre>
+<p>大概五次以后性能从约40ms提升至15ms，把代码改一下<code>int count = 500_000;</code>验证一下，确实了当<code>cat()</code>执行了五十万次左右的时候性能上了一个台阶：</p>
+<pre data-lang="bash" style="background-color:#2b303b;color:#c0c5ce;" class="language-bash "><code class="language-bash" data-lang="bash"><span style="color:#65737e;"># javac Sample001.java &amp;&amp; java -Xms1G -Xmx1G Sample001
+</span><span style="color:#bf616a;">Round</span><span> 000, finished 500000 in 178.598 ms
+</span><span style="color:#bf616a;">Round</span><span> 001, finished 500000 in 68.093 ms
+</span><span style="color:#bf616a;">Round</span><span> 002, finished 500000 in 58.356 ms
+</span><span style="color:#bf616a;">Round</span><span> 003, finished 500000 in 58.449 ms
+</span><span style="color:#bf616a;">Round</span><span> 004, finished 500000 in 75.782 ms
+</span><span style="color:#bf616a;">Round</span><span> 005, finished 500000 in 60.858 ms
+</span><span style="color:#bf616a;">Round</span><span> 006, finished 500000 in 79.830 ms
+</span><span style="color:#bf616a;">Round</span><span> 007, finished 500000 in 77.924 ms
+</span><span style="color:#bf616a;">Round</span><span> 008, finished 500000 in 63.239 ms
+</span><span style="color:#bf616a;">Round</span><span> 009, finished 500000 in 63.782 ms
+</span></code></pre>
+<p>为何呢？这就是<a href="https://www.ibm.com/developerworks/cn/java/j-lo-just-in-time/index.html">JIT</a>的功劳了。</p>
+<p>然后<a href="https://openjdk.java.net/projects/code-tools/jmh/">JMH (Java Microbenchmark Harness)</a>就登场了，JMH有一个预热（Warmup）的过程，预热让逻辑中可优化进入优化状态，让测试结果更接近真实（当然也许真实使用时并没有达到JIT的阈值，回头分析一下JIT的具体实现和触发）。</p>
+<h2 id="jmhde-shi-yong">JMH的使用</h2>
+<p>使用maven创建一个JMH的工程</p>
+<pre data-lang="sh" style="background-color:#2b303b;color:#c0c5ce;" class="language-sh "><code class="language-sh" data-lang="sh"><span style="color:#bf616a;">mvn</span><span> archetype:generate \
+</span><span style="color:#bf616a;">  -DinteractiveMode</span><span>=false \
+</span><span style="color:#bf616a;">  -DarchetypeGroupId</span><span>=org.openjdk.jmh \
+</span><span style="color:#bf616a;">  -DarchetypeArtifactId</span><span>=jmh-java-benchmark-archetype \
+</span><span style="color:#bf616a;">  -DgroupId</span><span>=org.sample \
+</span><span style="color:#bf616a;">  -DartifactId</span><span>=sample002 \
+</span><span style="color:#bf616a;">  -Dversion</span><span>=1.0
+</span></code></pre>
+<p>添加测试用例，加上标注 @Benchmark</p>
+<pre data-lang="java" style="background-color:#2b303b;color:#c0c5ce;" class="language-java "><code class="language-java" data-lang="java"><span style="color:#b48ead;">package </span><span>org.sample;
+</span><span>
+</span><span style="color:#b48ead;">import </span><span>org.openjdk.jmh.annotations.</span><span style="color:#ebcb8b;">Benchmark</span><span>;
+</span><span>
+</span><span style="color:#b48ead;">public class </span><span style="color:#ebcb8b;">MyBenchmark </span><span style="color:#eff1f5;">{
+</span><span style="color:#eff1f5;">    @</span><span style="color:#bf616a;">Benchmark
+</span><span style="color:#eff1f5;">    </span><span style="color:#b48ead;">public long </span><span style="color:#8fa1b3;">testCat</span><span style="color:#eff1f5;">() {
+</span><span style="color:#eff1f5;">        </span><span style="color:#ebcb8b;">String</span><span style="color:#eff1f5;"> a </span><span>= &quot;&quot;</span><span style="color:#eff1f5;">;
+</span><span style="color:#eff1f5;">        </span><span style="color:#b48ead;">for </span><span style="color:#eff1f5;">(</span><span style="color:#b48ead;">int</span><span style="color:#eff1f5;"> i </span><span>= </span><span style="color:#d08770;">0</span><span style="color:#eff1f5;">; i </span><span>&lt; </span><span style="color:#d08770;">10</span><span style="color:#eff1f5;">; i</span><span>++</span><span style="color:#eff1f5;">) {
+</span><span style="color:#eff1f5;">            a </span><span>+=</span><span style="color:#eff1f5;"> i;
+</span><span style="color:#eff1f5;">        }
+</span><span style="color:#eff1f5;">        </span><span style="color:#b48ead;">return</span><span style="color:#eff1f5;"> a.</span><span style="color:#bf616a;">length</span><span style="color:#eff1f5;">();
+</span><span style="color:#eff1f5;">    }
+</span><span style="color:#eff1f5;">
+</span><span style="color:#eff1f5;">    @</span><span style="color:#bf616a;">Benchmark
+</span><span style="color:#eff1f5;">    </span><span style="color:#b48ead;">public long </span><span style="color:#8fa1b3;">testBuilder</span><span style="color:#eff1f5;">() {
+</span><span style="color:#eff1f5;">        </span><span style="color:#ebcb8b;">StringBuilder</span><span style="color:#eff1f5;"> sb </span><span>= </span><span style="color:#b48ead;">new </span><span style="color:#ebcb8b;">StringBuilder</span><span style="color:#eff1f5;">();
+</span><span style="color:#eff1f5;">        </span><span style="color:#b48ead;">for </span><span style="color:#eff1f5;">(</span><span style="color:#b48ead;">int</span><span style="color:#eff1f5;"> i </span><span>= </span><span style="color:#d08770;">0</span><span style="color:#eff1f5;">; i </span><span>&lt; </span><span style="color:#d08770;">10</span><span style="color:#eff1f5;">; i</span><span>++</span><span style="color:#eff1f5;">) {
+</span><span style="color:#eff1f5;">            sb.</span><span style="color:#bf616a;">append</span><span style="color:#eff1f5;">(i);
+</span><span style="color:#eff1f5;">        }
+</span><span style="color:#eff1f5;">        </span><span style="color:#b48ead;">return</span><span style="color:#eff1f5;"> sb.</span><span style="color:#bf616a;">toString</span><span style="color:#eff1f5;">().</span><span style="color:#bf616a;">length</span><span style="color:#eff1f5;">();
+</span><span style="color:#eff1f5;">    }
+</span><span style="color:#eff1f5;">}
+</span></code></pre>
+<p>编译后执行，结果如下：</p>
+<pre data-lang="sh" style="background-color:#2b303b;color:#c0c5ce;" class="language-sh "><code class="language-sh" data-lang="sh"><span style="color:#bf616a;">mvn</span><span> clean package
+</span><span style="color:#bf616a;">java -jar</span><span> target/benchmarks.jar
+</span><span style="color:#65737e;"># JMH version: 1.21
+</span><span style="color:#65737e;"># VM version: JDK 1.8.0_202, Java HotSpot(TM) 64-Bit Server VM, 25.202-b08
+</span><span style="color:#65737e;"># VM invoker: /Library/Java/JavaVirtualMachines/jdk1.8.0_202.jdk/Contents/Home/jre/bin/java
+</span><span style="color:#65737e;"># VM options: &lt;none&gt;
+</span><span style="color:#65737e;"># Warmup: 5 iterations, 10 s each
+</span><span style="color:#65737e;"># Measurement: 5 iterations, 10 s each
+</span><span style="color:#65737e;"># Timeout: 10 min per iteration
+</span><span style="color:#65737e;"># Threads: 1 thread, will synchronize iterations
+</span><span style="color:#65737e;"># Benchmark mode: Throughput, ops/time
+</span><span style="color:#65737e;"># Benchmark: org.sample.MyBenchmark.testBuilder
+</span><span>
+</span><span style="color:#65737e;"># Run progress: 0.00% complete, ETA 00:16:40
+</span><span style="color:#65737e;"># Fork: 1 of 5
+</span><span style="color:#65737e;"># Warmup Iteration   1: 29079775.131 ops/s
+</span><span style="color:#65737e;"># Warmup Iteration   2: 12154565.069 ops/s
+</span><span style="color:#65737e;"># Warmup Iteration   3: 12958559.652 ops/s
+</span><span style="color:#65737e;"># Warmup Iteration   4: 12721430.371 ops/s
+</span><span style="color:#65737e;"># Warmup Iteration   5: 13166449.495 ops/s
+</span><span style="color:#bf616a;">Iteration</span><span>   1: 13021760.958 ops/s
+</span><span style="color:#bf616a;">Iteration</span><span>   2: 13536462.453 ops/s
+</span><span style="color:#bf616a;">Iteration</span><span>   3: 13469708.323 ops/s
+</span><span style="color:#bf616a;">Iteration</span><span>   4: 13416607.185 ops/s
+</span><span style="color:#bf616a;">Iteration</span><span>   5: 12752605.574 ops/s
+</span><span>
+</span><span style="color:#bf616a;">...
+</span><span>
+</span><span style="color:#bf616a;">Benchmark</span><span>                 Mode  Cnt         Score        Error  Units
+</span><span style="color:#bf616a;">MyBenchmark.testBuilder</span><span>  thrpt   25  13265478.693 ± 697017.778  ops/s
+</span><span style="color:#bf616a;">MyBenchmark.testCat</span><span>      thrpt   25   2469800.468 ± 138938.866  ops/s
+</span></code></pre>
+<p>例子中跑了两个测试一个是 MyBenchmark.testCat 和 MyBenchmark.testBuilder</p>
+<ul>
+<li><code># Fork: 1 of 5</code>: 每个5次测试（)</li>
+<li><code># Warmup: 5 iterations, 10 s each</code>: 每次测试包含5次10秒的预热</li>
+<li><code># Measurement: 5 iterations, 10 s each</code>: 每次测试包含5轮10秒的测试</li>
+<li><code># Threads: 1 thread, will synchronize iterations</code>: 每次测试开1个线程</li>
+<li><code># Run complete. Total time: 00:16:45</code>: 一共花了约16分钟</li>
+</ul>
+<p>通过参数或者标注可以对这几个数值进行修改。</p>
+<h3 id="tong-guo-can-shu-diao-zheng">通过参数调整</h3>
+<pre data-lang="java" style="background-color:#2b303b;color:#c0c5ce;" class="language-java "><code class="language-java" data-lang="java"><span style="color:#b48ead;">public static</span><span> void </span><span style="color:#bf616a;">main</span><span>(</span><span style="color:#ebcb8b;">String</span><span style="color:#b48ead;">[]</span><span> args) throws </span><span style="color:#ebcb8b;">RunnerException </span><span>{
+</span><span>    </span><span style="color:#ebcb8b;">Options</span><span> options = </span><span style="color:#b48ead;">new </span><span style="color:#ebcb8b;">OptionsBuilder</span><span>()
+</span><span>            .</span><span style="color:#bf616a;">include</span><span>(</span><span style="color:#ebcb8b;">MyBenchmark</span><span>.</span><span style="color:#bf616a;">class</span><span>.</span><span style="color:#bf616a;">getSimpleName</span><span>())
+</span><span>            .</span><span style="color:#bf616a;">forks</span><span>(</span><span style="color:#d08770;">2</span><span>)
+</span><span>            .</span><span style="color:#bf616a;">threads</span><span>(</span><span style="color:#d08770;">2</span><span>)
+</span><span>            .</span><span style="color:#bf616a;">warmupIterations</span><span>(</span><span style="color:#d08770;">2</span><span>)
+</span><span>            .</span><span style="color:#bf616a;">warmupTime</span><span>(</span><span style="color:#ebcb8b;">TimeValue</span><span>.</span><span style="color:#bf616a;">seconds</span><span>(</span><span style="color:#d08770;">2</span><span>))
+</span><span>            .</span><span style="color:#bf616a;">measurementBatchSize</span><span>(</span><span style="color:#d08770;">2</span><span>)
+</span><span>            .</span><span style="color:#bf616a;">measurementTime</span><span>(</span><span style="color:#ebcb8b;">TimeValue</span><span>.</span><span style="color:#bf616a;">seconds</span><span>(</span><span style="color:#d08770;">2</span><span>))
+</span><span>            .</span><span style="color:#bf616a;">build</span><span>();
+</span><span>    </span><span style="color:#b48ead;">new </span><span style="color:#ebcb8b;">Runner</span><span>(options).</span><span style="color:#bf616a;">run</span><span>();
+</span><span>}
+</span></code></pre>
+<p>执行结果如下：</p>
+<pre data-lang="sh" style="background-color:#2b303b;color:#c0c5ce;" class="language-sh "><code class="language-sh" data-lang="sh"><span style="color:#bf616a;">➜</span><span>  sample002 git:(code) </span><span style="color:#bf616a;">✗</span><span> java</span><span style="color:#bf616a;"> -cp</span><span> target/benchmarks.jar org.sample.MyBenchmark
+</span><span style="color:#65737e;"># JMH version: 1.21
+</span><span style="color:#65737e;"># VM version: JDK 1.8.0_202, Java HotSpot(TM) 64-Bit Server VM, 25.202-b08
+</span><span style="color:#65737e;"># VM invoker: /Library/Java/JavaVirtualMachines/jdk1.8.0_202.jdk/Contents/Home/jre/bin/java
+</span><span style="color:#65737e;"># VM options: &lt;none&gt;
+</span><span style="color:#65737e;"># Warmup: 2 iterations, 2 s each
+</span><span style="color:#65737e;"># Measurement: 2 iterations, 2 s each
+</span><span style="color:#65737e;"># Timeout: 10 min per iteration
+</span><span style="color:#65737e;"># Threads: 2 threads, will synchronize iterations
+</span><span style="color:#65737e;"># Benchmark mode: Throughput, ops/time
+</span><span style="color:#65737e;"># Benchmark: org.sample.MyBenchmark.testBuilder
+</span></code></pre>
+<h3 id="tong-guo-biao-zhu-diao-zheng">通过标注调整</h3>
+<pre data-lang="java" style="background-color:#2b303b;color:#c0c5ce;" class="language-java "><code class="language-java" data-lang="java"><span>@</span><span style="color:#bf616a;">BenchmarkMode</span><span>(</span><span style="color:#ebcb8b;">Mode</span><span>.</span><span style="color:#ebcb8b;">Throughput</span><span>)
+</span><span>@</span><span style="color:#bf616a;">Warmup</span><span>(</span><span style="color:#bf616a;">iterations </span><span>= </span><span style="color:#d08770;">3</span><span>, </span><span style="color:#bf616a;">time </span><span>= </span><span style="color:#d08770;">5</span><span>, </span><span style="color:#bf616a;">timeUnit </span><span>= </span><span style="color:#ebcb8b;">TimeUnit</span><span>.</span><span style="color:#d08770;">SECONDS</span><span>)
+</span><span>@</span><span style="color:#bf616a;">Measurement</span><span>(</span><span style="color:#bf616a;">iterations </span><span>= </span><span style="color:#d08770;">3</span><span>, </span><span style="color:#bf616a;">time </span><span>= </span><span style="color:#d08770;">5</span><span>, </span><span style="color:#bf616a;">timeUnit </span><span>= </span><span style="color:#ebcb8b;">TimeUnit</span><span>.</span><span style="color:#d08770;">SECONDS</span><span>)
+</span><span>@</span><span style="color:#bf616a;">Threads</span><span>(</span><span style="color:#d08770;">3</span><span>)
+</span><span>@</span><span style="color:#bf616a;">Fork</span><span>(</span><span style="color:#d08770;">3</span><span>)
+</span><span style="color:#b48ead;">public class </span><span style="color:#ebcb8b;">MyBenchmark </span><span style="color:#eff1f5;">{
+</span><span style="color:#eff1f5;">
+</span><span style="color:#eff1f5;">}
+</span></code></pre>
+<p>执行结果如下：</p>
+<pre data-lang="sh" style="background-color:#2b303b;color:#c0c5ce;" class="language-sh "><code class="language-sh" data-lang="sh"><span style="color:#bf616a;">➜</span><span>  sample002 git:(code) </span><span style="color:#bf616a;">✗</span><span> java</span><span style="color:#bf616a;"> -jar</span><span> target/benchmarks.jar
+</span><span style="color:#65737e;"># JMH version: 1.21
+</span><span style="color:#65737e;"># VM version: JDK 1.8.0_202, Java HotSpot(TM) 64-Bit Server VM, 25.202-b08
+</span><span style="color:#65737e;"># VM invoker: /Library/Java/JavaVirtualMachines/jdk1.8.0_202.jdk/Contents/Home/jre/bin/java
+</span><span style="color:#65737e;"># VM options: &lt;none&gt;
+</span><span style="color:#65737e;"># Warmup: 3 iterations, 5 s each
+</span><span style="color:#65737e;"># Measurement: 3 iterations, 5 s each
+</span><span style="color:#65737e;"># Timeout: 10 min per iteration
+</span><span style="color:#65737e;"># Threads: 3 threads, will synchronize iterations
+</span><span style="color:#65737e;"># Benchmark mode: Throughput, ops/time
+</span><span style="color:#65737e;"># Benchmark: org.sample.MyBenchmark.testBuilder
+</span></code></pre>
+<p>另外在输出中还发现 <code># VM options: &lt;none&gt;</code>，VM参数也可以通过以上两种方式进行调整，Fork标注中可以添加参数，如<code>@Fork(value = 3, jvmArgs = {&quot;-Xms1G&quot;, &quot;-Xmx1G&quot;})</code>等。</p>
+<h2 id="ri-zhi-shu-chu">日志输出</h2>
+<p>前面两个章节说了Java如何做性能测试，从古老的循环执行统计时间到使用JMH工具进行预热和执行。回到文章开头说的两个日志的使用方法字符串拼接与占位符性能问题，文章也解析了slf4j的源码，细节不再阐述。</p>
+<p>六个用例，分别是</p>
+<ul>
+<li>testDebug: 普通DEBUG</li>
+<li>testDebugWithIf: 添加判断的DEBUG</li>
+<li>testDebug5: 五个参数占位符的DEBUG</li>
+<li>testDebugWithIf5: 添加判断、五个参数占位符的DEBUG</li>
+<li>testInfo5: 五个参数占位符的INFO</li>
+<li>testInfoBuild5: 五个参数拼接的INFO</li>
+</ul>
+<p><a href="https://github.com/pythias/jie.sh/tree/code/code/sample003">代码</a>如下：</p>
+<pre data-lang="java" style="background-color:#2b303b;color:#c0c5ce;" class="language-java "><code class="language-java" data-lang="java"><span>@</span><span style="color:#bf616a;">Benchmark
+</span><span style="color:#b48ead;">public</span><span> void </span><span style="color:#bf616a;">testDebug</span><span>() {
+</span><span>    log.</span><span style="color:#bf616a;">debug</span><span>(&quot;</span><span style="color:#a3be8c;">Hello.</span><span>&quot;);
+</span><span>}
+</span><span>
+</span><span>@</span><span style="color:#bf616a;">Benchmark
+</span><span style="color:#b48ead;">public</span><span> void </span><span style="color:#bf616a;">testDebugWithIf</span><span>() {
+</span><span>    </span><span style="color:#b48ead;">if </span><span>(log.</span><span style="color:#bf616a;">isDebugEnabled</span><span>()) {
+</span><span>        log.</span><span style="color:#bf616a;">debug</span><span>(&quot;</span><span style="color:#a3be8c;">Hello.</span><span>&quot;);
+</span><span>    }
+</span><span>}
+</span><span>
+</span><span>@</span><span style="color:#bf616a;">Benchmark
+</span><span style="color:#b48ead;">public</span><span> void </span><span style="color:#bf616a;">testDebug5</span><span>() {
+</span><span>    log.</span><span style="color:#bf616a;">debug</span><span>(&quot;</span><span style="color:#a3be8c;">Hello {}, {}, {}, {}, {}.</span><span>&quot;, &quot;</span><span style="color:#a3be8c;">one</span><span>&quot;, &quot;</span><span style="color:#a3be8c;">two</span><span>&quot;, &quot;</span><span style="color:#a3be8c;">three</span><span>&quot;, &quot;</span><span style="color:#a3be8c;">four</span><span>&quot;, &quot;</span><span style="color:#a3be8c;">five</span><span>&quot;);
+</span><span>}
+</span><span>
+</span><span>@</span><span style="color:#bf616a;">Benchmark
+</span><span style="color:#b48ead;">public</span><span> void </span><span style="color:#bf616a;">testDebugWithIf5</span><span>() {
+</span><span>    </span><span style="color:#b48ead;">if </span><span>(log.</span><span style="color:#bf616a;">isDebugEnabled</span><span>()) {
+</span><span>        log.</span><span style="color:#bf616a;">debug</span><span>(&quot;</span><span style="color:#a3be8c;">Hello {}, {}, {}, {}, {}.</span><span>&quot;, &quot;</span><span style="color:#a3be8c;">one</span><span>&quot;, &quot;</span><span style="color:#a3be8c;">two</span><span>&quot;, &quot;</span><span style="color:#a3be8c;">three</span><span>&quot;, &quot;</span><span style="color:#a3be8c;">four</span><span>&quot;, &quot;</span><span style="color:#a3be8c;">five</span><span>&quot;);
+</span><span>    }
+</span><span>}
+</span><span>
+</span><span>@</span><span style="color:#bf616a;">Benchmark
+</span><span style="color:#b48ead;">public</span><span> void </span><span style="color:#bf616a;">testInfo5</span><span>() {
+</span><span>    log.</span><span style="color:#bf616a;">info</span><span>(&quot;</span><span style="color:#a3be8c;">Hello {}, {}, {}, {}, {}.</span><span>&quot;, &quot;</span><span style="color:#a3be8c;">one</span><span>&quot;, &quot;</span><span style="color:#a3be8c;">two</span><span>&quot;, &quot;</span><span style="color:#a3be8c;">three</span><span>&quot;, &quot;</span><span style="color:#a3be8c;">four</span><span>&quot;, &quot;</span><span style="color:#a3be8c;">five</span><span>&quot;);
+</span><span>}
+</span><span>
+</span><span>@</span><span style="color:#bf616a;">Benchmark
+</span><span style="color:#b48ead;">public</span><span> void </span><span style="color:#bf616a;">testInfoBuild5</span><span>() {
+</span><span>    </span><span style="color:#ebcb8b;">StringBuilder</span><span> sb = </span><span style="color:#b48ead;">new </span><span style="color:#ebcb8b;">StringBuilder</span><span>(&quot;</span><span style="color:#a3be8c;">Hello </span><span>&quot;);
+</span><span>    sb.</span><span style="color:#bf616a;">append</span><span>(&quot;</span><span style="color:#a3be8c;">one</span><span>&quot;).</span><span style="color:#bf616a;">append</span><span>(&quot;</span><span style="color:#a3be8c;">, </span><span>&quot;).</span><span style="color:#bf616a;">append</span><span>(&quot;</span><span style="color:#a3be8c;">two</span><span>&quot;).</span><span style="color:#bf616a;">append</span><span>(&quot;</span><span style="color:#a3be8c;">, </span><span>&quot;);
+</span><span>    sb.</span><span style="color:#bf616a;">append</span><span>(&quot;</span><span style="color:#a3be8c;">three</span><span>&quot;).</span><span style="color:#bf616a;">append</span><span>(&quot;</span><span style="color:#a3be8c;">, </span><span>&quot;).</span><span style="color:#bf616a;">append</span><span>(&quot;</span><span style="color:#a3be8c;">four</span><span>&quot;).</span><span style="color:#bf616a;">append</span><span>(&quot;</span><span style="color:#a3be8c;">, </span><span>&quot;);
+</span><span>    sb.</span><span style="color:#bf616a;">append</span><span>(&quot;</span><span style="color:#a3be8c;">five</span><span>&quot;).</span><span style="color:#bf616a;">append</span><span>(&quot;</span><span style="color:#a3be8c;">.</span><span>&quot;);
+</span><span>    log.</span><span style="color:#bf616a;">info</span><span>(sb.</span><span style="color:#bf616a;">toString</span><span>());
+</span><span>}
+</span></code></pre>
+<p>执行结果如下：</p>
+<pre data-lang="bash" style="background-color:#2b303b;color:#c0c5ce;" class="language-bash "><code class="language-bash" data-lang="bash"><span style="color:#65737e;"># Run complete. Total time: 00:10:43
+</span><span style="color:#bf616a;">Benchmark</span><span>                      Mode  Cnt           Score           Error  Units
+</span><span style="color:#bf616a;">MyBenchmark.testDebug</span><span>         thrpt    9  1130576386.310 ± 111537882.560  ops/s
+</span><span style="color:#bf616a;">MyBenchmark.testDebug5</span><span>        thrpt    9  1191771199.022 ±  82513902.896  ops/s
+</span><span style="color:#bf616a;">MyBenchmark.testDebugWithIf</span><span>   thrpt    9  1352370214.289 ±  20520868.587  ops/s
+</span><span style="color:#bf616a;">MyBenchmark.testDebugWithIf5</span><span>  thrpt    9  1354268920.782 ±  68562339.128  ops/s
+</span><span style="color:#bf616a;">MyBenchmark.testInfo5</span><span>         thrpt    9      137841.892 ±     13788.722  ops/s
+</span><span style="color:#bf616a;">MyBenchmark.testInfoBuild5</span><span>    thrpt    9      148135.404 ±     13144.961  ops/s
+</span></code></pre>
+<h3 id="chang-jing-1-kai-fa-de-debugri-zhi-zen-yao-da">场景1：开发的DEBUG日志怎么打</h3>
+<p>添加<code>isDebugEnabled()</code>的判断是否有必要</p>
+<pre data-lang="java" style="background-color:#2b303b;color:#c0c5ce;" class="language-java "><code class="language-java" data-lang="java"><span style="color:#b48ead;">if </span><span>(log.</span><span style="color:#bf616a;">isDebugEnabled</span><span>()) {
+</span><span>    log.</span><span style="color:#bf616a;">debug</span><span>(&quot;</span><span style="color:#a3be8c;">Hello.</span><span>&quot;);
+</span><span>}
+</span></code></pre>
+<p>对比用例 <code>testDebug5</code> VS <code>testDebugWithIf5</code> 或者 <code>testDebug</code> VS <code>testDebugWithIf</code>，当日志不需要输出时过程极快不到1纳米一次，多了判断的过程也就是让执行时间从0.839纳秒/次提升至0.739纳秒/次，虽然11.9%那么多的提升，但0.01纳米对于业务逻辑的毫秒处理过程来说可以忽略不计。</p>
+<p>但有些日志记录中参数是其他方法，这种情况就另说了，比如：</p>
+<pre data-lang="java" style="background-color:#2b303b;color:#c0c5ce;" class="language-java "><code class="language-java" data-lang="java"><span style="color:#b48ead;">if </span><span>(log.</span><span style="color:#bf616a;">isDebugEnabled</span><span>()) {
+</span><span>    log.</span><span style="color:#bf616a;">debug</span><span>(&quot;</span><span style="color:#a3be8c;">Hello, {}</span><span>&quot;, </span><span style="color:#bf616a;">obj</span><span style="color:#b48ead;">-&gt;</span><span style="color:#bf616a;">getSomeValue</span><span>());
+</span><span>}
+</span></code></pre>
+<p>一般 <code>obj-&gt;getSomeValue()</code> 也只是获取对象的属性，如果 <code>obj-&gt;getSomeValue()</code> 是一个复杂的过程，这么设计也太不讲究太不规范了。</p>
+<h3 id="chang-jing-2-yi-ge-can-shu-he-wu-ge-can-shu-de-qu-bie">场景2：一个参数和五个参数的区别</h3>
+<p>对比方法执行时，传输参数数量对于性能的差异，想通过<code>testDebug</code> VS <code>testDebug5</code>来对比，但是这个测试用例不严禁，干扰太多，得空再进行针对性的分析。</p>
+<h3 id="chang-jing-3-pin-jie-huan-shi-zhan-wei-fu">场景3：拼接还是占位符</h3>
+<p>源码里占位符的实现也是采用了拼接的方式，只是在代码编写是更加优雅，用例 <code>testInfo5</code> VS <code>testInfoBuild5</code> （差异因本机IO影响较大忽略前后）两者性能基本在6.75微秒/次，基本所有时间都消耗在要么有磁盘IO要么有网络IO的操作（当然我们可以定期再flush各种方式进行优化），所以拼接还是占位符那点性能差异也可以忽略。</p>
+<h3 id="chang-jing-4-xie-ri-zhi-he-bu-xie-ri-zhi">场景4：写日志和不写日志</h3>
+<p><code>testDebug5</code> VS <code>testInfo5</code></p>
+<h2 id="jie-lun">结论</h2>
+<ol>
+<li>用占位符，写起来好看；</li>
+<li>无需判断debugEnabled，直接使用log-&gt;debug()，性能差异可忽略；</li>
+<li>一个方法里参数里执行复杂过程是错误写法。</li>
+</ol>
+<hr />
+<p><em>测试环境（测试结果不是很严谨，因为测试时还在作别的，特别是写日志时磁盘IO影响较大，但相对数据及整体结论还是没有太多影响）：</em></p>
+<pre data-lang="bash" style="background-color:#2b303b;color:#c0c5ce;" class="language-bash "><code class="language-bash" data-lang="bash"><span style="color:#bf616a;">iMac</span><span> (Retina 4K, 21.5-inch, Late 2015)
+</span><span style="color:#bf616a;">3.1</span><span> GHz Quad-Core Intel Core i5
+</span><span style="color:#bf616a;">8</span><span> GB 1867 MHz DDR3
+</span></code></pre>
+<p>参考:</p>
+<ol>
+<li><a href="https://www.ibm.com/developerworks/cn/java/j-lo-just-in-time/index.html">JIT</a></li>
+<li><a href="https://openjdk.java.net/projects/code-tools/jmh/">JMH (Java Microbenchmark Harness)</a></li>
+<li><a href="https://xie.infoq.cn/article/cae1455171caa912d103a5b8e">驳《阿里「Java 开发手册」中的 1 个 bug》？</a></li>
+</ol>
+
+</div>
+
+        </div>
+
+    </body>
+
+</html>

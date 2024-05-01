@@ -1,0 +1,261 @@
+<!DOCTYPE html>
+<html lang="en">
+    <head>
+      <meta http-equiv="X-UA-Compatible" content="IE=edge">
+      <meta http-equiv="content-type" content="text/html; charset=utf-8">
+
+      <!-- Enable responsiveness on mobile devices-->
+      <!-- viewport-fit=cover is to support iPhone X rounded corners and notch in landscape-->
+      <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1, viewport-fit=cover">
+
+      <title>jie.sh</title>
+
+      <!-- CSS -->
+      <link rel="stylesheet" href="https://jie.sh/print.css" media="print">
+      <link rel="stylesheet" href="https://jie.sh/poole.css">
+      <link rel="stylesheet" href="https://jie.sh/hyde.css">
+      <link rel="stylesheet" href="https://fonts.googleapis.com/css?family=PT+Sans:400,400italic,700|Abril+Fatface">
+
+      
+
+      
+      
+    </head>
+
+    <body class="theme-base-0d ">
+        
+            <div class="sidebar">
+                <div class="container sidebar-sticky">
+                    <div class="sidebar-about">
+                        
+                            <a href="https:&#x2F;&#x2F;jie.sh"><h1>jie.sh</h1></a>
+                            
+                            <p class="lead">走出去，看看世界</p>
+                            
+                        
+                    </div>
+
+                    <ul class="sidebar-nav">
+                        
+                        
+                        <li class="sidebar-nav-item"><a href="&#x2F;tags">Tags</a></li>
+                        
+                        <li class="sidebar-nav-item"><a href="&#x2F;categories">Categories</a></li>
+                        
+                        <li class="sidebar-nav-item"><a href="https:&#x2F;&#x2F;c.jie.sh">给忙碌者的育儿攻略</a></li>
+                        
+                        <li class="sidebar-nav-item"><a href="https:&#x2F;&#x2F;c.jie.sh&#x2F;gallery">多多的作品</a></li>
+                        
+                        <li class="sidebar-nav-item"><a href="https:&#x2F;&#x2F;weibo.com&#x2F;u&#x2F;1763952531">微博：陈杰要骑车</a></li>
+                        
+                        
+                    </ul>
+                </div>
+            </div>
+        
+
+        <div class="content container">
+            
+<div class="post">
+  <h1 class="post-title">联手Copilot用Rust编写Redis</h1>
+  <span class="post-date">2024-04-30</span>
+  <h2 id="qi-yuan">起源</h2>
+<p>从第一次用ChatGPT到现在已经过了一年多了，Copilot 也在慢慢改变我们的编程方式。当初学 Rust 的时候就想着要不要写一个简化版的 Redis，现在正好可以用 Copilot 来帮助我们完成这个任务。</p>
+<h2 id="ji-ben-she-xiang">基本设想</h2>
+<ul>
+<li>全程使用 Copilot 辅助。</li>
+<li>记录下所有交互过程。</li>
+</ul>
+<p>功能要求：</p>
+<ul>
+<li>兼容 Redis 协议。</li>
+<li>实现包括 String, Hash, List, Set, Sorted Set 等数据结构及其指令。</li>
+<li>单进程数据安全。</li>
+<li>不支持持久化、集群、主从复制、数据库等功能。</li>
+</ul>
+<h2 id="mai-chu-di-yi-bu">迈出第一步</h2>
+<ul>
+<li>Me:</li>
+</ul>
+<p>use rust create a tcp server</p>
+<ul>
+<li>Copilot:</li>
+</ul>
+<p>Here is a basic example of a TCP server in Rust:</p>
+<pre data-lang="rust" style="background-color:#2b303b;color:#c0c5ce;" class="language-rust "><code class="language-rust" data-lang="rust"><span style="color:#b48ead;">use </span><span>std::io::prelude::*;
+</span><span style="color:#b48ead;">use </span><span>std::net::TcpListener;
+</span><span style="color:#b48ead;">use </span><span>std::net::TcpStream;
+</span><span>
+</span><span style="color:#b48ead;">fn </span><span style="color:#8fa1b3;">main</span><span>() {
+</span><span>    </span><span style="color:#b48ead;">let</span><span> listener = TcpListener::bind(&quot;</span><span style="color:#a3be8c;">127.0.0.1:7878</span><span>&quot;).</span><span style="color:#96b5b4;">unwrap</span><span>();
+</span><span>
+</span><span>    </span><span style="color:#b48ead;">for</span><span> stream in listener.</span><span style="color:#96b5b4;">incoming</span><span>() {
+</span><span>        </span><span style="color:#b48ead;">let</span><span> stream = stream.</span><span style="color:#96b5b4;">unwrap</span><span>();
+</span><span>
+</span><span>        </span><span style="color:#96b5b4;">handle_connection</span><span>(stream);
+</span><span>    }
+</span><span>}
+</span><span>
+</span><span style="color:#b48ead;">fn </span><span style="color:#8fa1b3;">handle_connection</span><span>(</span><span style="color:#b48ead;">mut </span><span style="color:#bf616a;">stream</span><span>: TcpStream) {
+</span><span>    </span><span style="color:#b48ead;">let mut</span><span> buffer = [</span><span style="color:#d08770;">0</span><span>; </span><span style="color:#d08770;">512</span><span>];
+</span><span>
+</span><span>    stream.</span><span style="color:#96b5b4;">read</span><span>(&amp;</span><span style="color:#b48ead;">mut</span><span> buffer).</span><span style="color:#96b5b4;">unwrap</span><span>();
+</span><span>
+</span><span>    println!(&quot;</span><span style="color:#a3be8c;">Request: </span><span style="color:#d08770;">{}</span><span>&quot;, String::from_utf8_lossy(&amp;buffer[..]));
+</span><span>}
+</span></code></pre>
+<p>his code creates a TCP server that listens on localhost at port 7878. When a connection is made, it reads the incoming data into a buffer and prints it out.</p>
+<h2 id="rang-ta-pao-qi-lai">让它跑起来</h2>
+<ul>
+<li>Me:</li>
+</ul>
+<p>how to run main.rs</p>
+<ul>
+<li>Copilot:</li>
+</ul>
+<p>To run the <code>main.rs</code> file in Rust, you need to use the <code>cargo run</code> command in the terminal. Here's how you do it:</p>
+<ol>
+<li>
+<p>Open the terminal in Visual Studio Code by going to <code>View -&gt; Terminal</code> or by pressing <code>Control + backtick (``)</code>.</p>
+</li>
+<li>
+<p>Navigate to the directory containing your <code>main.rs</code> file. You can do this using the <code>cd</code> command. For example, if your <code>main.rs</code> file is in a directory named <code>my_project</code>, you would type <code>cd my_project</code>.</p>
+</li>
+<li>
+<p>Once you're in the correct directory, type <code>cargo run</code> and press <code>Enter</code>. This will compile and run your <code>main.rs</code> file.</p>
+</li>
+</ol>
+<p>Here's what the commands look like:</p>
+<pre data-lang="bash" style="background-color:#2b303b;color:#c0c5ce;" class="language-bash "><code class="language-bash" data-lang="bash"><span style="color:#96b5b4;">cd</span><span> path_to_your_project
+</span><span style="color:#bf616a;">cargo</span><span> run
+</span></code></pre>
+<p>Replace <code>path_to_your_project</code> with the actual path to your project.</p>
+<p>pythias: error: could not find <code>Cargo.toml</code> in <code>./rust/ai-redis</code> or any parent directory</p>
+<p>GitHub Copilot: The error message you're seeing indicates that the <code>cargo</code> command can't find a <code>Cargo.toml</code> file in your current directory or any parent directory. The <code>Cargo.toml</code> file is necessary for managing Rust packages.</p>
+<p>Here's how you can create a new <code>Cargo.toml</code> file:</p>
+<ol>
+<li>
+<p>Navigate to the root directory of your project (the directory that should contain <code>Cargo.toml</code>).</p>
+</li>
+<li>
+<p>Run the command <code>cargo init</code> in your terminal. This will create a new <code>Cargo.toml</code> file and a <code>src</code> directory if they don't already exist.</p>
+</li>
+<li>
+<p>Move your <code>main.rs</code> file into the <code>src</code> directory.</p>
+</li>
+<li>
+<p>Now you should be able to run <code>cargo run</code> from the root directory of your project.</p>
+</li>
+</ol>
+<p>Here are the commands:</p>
+<pre data-lang="bash" style="background-color:#2b303b;color:#c0c5ce;" class="language-bash "><code class="language-bash" data-lang="bash"><span style="color:#96b5b4;">cd</span><span> path_to_your_project
+</span><span style="color:#bf616a;">cargo</span><span> init
+</span><span style="color:#bf616a;">mv</span><span> main.rs src/
+</span><span style="color:#bf616a;">cargo</span><span> run
+</span></code></pre>
+<p>Replace <code>path_to_your_project</code> with the actual path to your project.</p>
+<h2 id="fa-xian-cargomei-you-an-zhuang">发现Cargo没有安装</h2>
+<ul>
+<li>Me:</li>
+</ul>
+<p>error: could not find <code>Cargo.toml</code> in <code>./rust/ai-redis</code> or any parent directory</p>
+<ul>
+<li>Copilot:</li>
+</ul>
+<p>The error message you're seeing indicates that the <code>cargo</code> command can't find a <code>Cargo.toml</code> file in your current directory or any parent directory. The <code>Cargo.toml</code> file is necessary for managing Rust packages.</p>
+<p>Here's how you can create a new <code>Cargo.toml</code> file:</p>
+<ol>
+<li>
+<p>Navigate to the root directory of your project (the directory that should contain <code>Cargo.toml</code>).</p>
+</li>
+<li>
+<p>Run the command <code>cargo init</code> in your terminal. This will create a new <code>Cargo.toml</code> file and a <code>src</code> directory if they don't already exist.</p>
+</li>
+<li>
+<p>Move your <code>main.rs</code> file into the <code>src</code> directory.</p>
+</li>
+<li>
+<p>Now you should be able to run <code>cargo run</code> from the root directory of your project.</p>
+</li>
+</ol>
+<p>Here are the commands:</p>
+<pre data-lang="bash" style="background-color:#2b303b;color:#c0c5ce;" class="language-bash "><code class="language-bash" data-lang="bash"><span style="color:#96b5b4;">cd</span><span> path_to_your_project
+</span><span style="color:#bf616a;">cargo</span><span> init
+</span><span style="color:#bf616a;">mv</span><span> main.rs src/
+</span><span style="color:#bf616a;">cargo</span><span> run
+</span></code></pre>
+<p>Replace <code>path_to_your_project</code> with the actual path to your project.</p>
+<blockquote>
+<p>点评</p>
+</blockquote>
+<p>此处它有错误，<code>cargo init</code>时会自动根据 <code>main.rs</code> 的位置生成<code>Cargo.toml</code>，不需要手动移动<code>main.rs</code>。但是使用<code>src</code>目录更符合Rust的项目结构。所以可以这么操作</p>
+<pre data-lang="bash" style="background-color:#2b303b;color:#c0c5ce;" class="language-bash "><code class="language-bash" data-lang="bash"><span style="color:#96b5b4;">cd</span><span> path_to_your_project
+</span><span style="color:#bf616a;">mkdir</span><span> src
+</span><span style="color:#bf616a;">mv</span><span> main.rs src/
+</span><span style="color:#bf616a;">cargo</span><span> init
+</span></code></pre>
+<p>我试着跟它交流一下这个问题</p>
+<ul>
+<li>Me:</li>
+</ul>
+<p>cargo run
+Compiling ai-redis v0.1.0 (./rust/ai-redis)
+error: couldn't read main.rs: No such file or directory (os error 2)</p>
+<p>error: could not compile <code>ai-redis</code> (bin &quot;ai-redis&quot;) due to 1 previous error</p>
+<ul>
+<li>Copilot:</li>
+</ul>
+<p>The error message indicates that the Rust compiler cannot find the <code>main.rs</code> file in the expected location. </p>
+<p>Ensure that your <code>main.rs</code> file is located in the <code>src</code> directory of your project. The structure should look like this:</p>
+<pre style="background-color:#2b303b;color:#c0c5ce;"><code><span>your_project
+</span><span>├── Cargo.toml
+</span><span>└── src
+</span><span>    └── main.rs
+</span></code></pre>
+<p>If your <code>main.rs</code> file is not in the <code>src</code> directory, move it there. You can use the <code>mv</code> command in the terminal to move files:</p>
+<pre data-lang="bash" style="background-color:#2b303b;color:#c0c5ce;" class="language-bash "><code class="language-bash" data-lang="bash"><span style="color:#bf616a;">mv</span><span> path_to_your_main.rs src/main.rs
+</span></code></pre>
+<p>Replace <code>path_to_your_main.rs</code> with the actual path to your <code>main.rs</code> file.</p>
+<p>After moving <code>main.rs</code> to the <code>src</code> directory, try running <code>cargo run</code> again.</p>
+<ul>
+<li>Me:</li>
+</ul>
+<p>main.rs已经在src目录下</p>
+<ul>
+<li>Copilot:</li>
+</ul>
+<p>The <code>Cargo.toml</code> file is incorrectly pointing to <code>main.rs</code> in the root directory. Since you've mentioned that <code>main.rs</code> is already in the <code>src</code> directory, you need to update the <code>path</code> under <code>[[bin]]</code> to point to <code>src/main.rs</code>.</p>
+<p>Here's how your <code>Cargo.toml</code> should look:</p>
+<pre data-lang="toml" style="background-color:#2b303b;color:#c0c5ce;" class="language-toml "><code class="language-toml" data-lang="toml"><span>[package]
+</span><span style="color:#bf616a;">name </span><span>= &quot;</span><span style="color:#a3be8c;">ai-redis</span><span>&quot;
+</span><span style="color:#bf616a;">version </span><span>= &quot;</span><span style="color:#a3be8c;">0.1.0</span><span>&quot;
+</span><span style="color:#bf616a;">edition </span><span>= &quot;</span><span style="color:#a3be8c;">2021</span><span>&quot;
+</span><span>
+</span><span style="color:#65737e;"># See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
+</span><span>
+</span><span>[dependencies]
+</span><span>
+</span><span>[[bin]]
+</span><span style="color:#bf616a;">name </span><span>= &quot;</span><span style="color:#a3be8c;">ai-redis</span><span>&quot;
+</span><span style="color:#bf616a;">path </span><span>= &quot;</span><span style="color:#a3be8c;">src/main.rs</span><span>&quot;
+</span></code></pre>
+<p>After updating <code>Cargo.toml</code>, try running <code>cargo run</code> again.</p>
+<blockquote>
+<p>点评</p>
+</blockquote>
+<p>我问得不对，它没意识到之前处理顺序问题，导致<code>main.rs</code>在<code>src</code>目录下，但是<code>Cargo.toml</code>中的<code>path</code>字段指向了错误的位置。第二次提交时它知道了。但它还有几个地方有错，比如配置文件它用了<code>plaintext</code>没用<code>toml</code>；比如 <code>[[bin]]</code> 其实可以省略，因为默认就是<code>src/main.rs</code>。</p>
+<h2 id="zong-jie">总结</h2>
+<p>Copilot 在这个过程中帮助我完成了一个简单的TCP Server的创建，但是在配置Cargo时有一些问题。我发现Copilot在处理问题时，有时候会忽略之前的问题，导致后续的问题无法解决。但是总体来说，Copilot还是一个很好的工具，可以帮助我们快速完成一些简单的任务。</p>
+<h2 id="qi-ta-zhang-jie">其他章节</h2>
+<ul>
+<li><a href="https://jie.sh/copilot-redis/">开始</a></li>
+<li><a href="https://jie.sh/copilot-redis-01/">第一章</a></li>
+</ul>
+
+</div>
+
+        </div>
+
+    </body>
+
+</html>

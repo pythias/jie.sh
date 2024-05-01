@@ -1,0 +1,483 @@
+<!DOCTYPE html>
+<html lang="en">
+    <head>
+      <meta http-equiv="X-UA-Compatible" content="IE=edge">
+      <meta http-equiv="content-type" content="text/html; charset=utf-8">
+
+      <!-- Enable responsiveness on mobile devices-->
+      <!-- viewport-fit=cover is to support iPhone X rounded corners and notch in landscape-->
+      <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1, viewport-fit=cover">
+
+      <title>jie.sh</title>
+
+      <!-- CSS -->
+      <link rel="stylesheet" href="https://jie.sh/print.css" media="print">
+      <link rel="stylesheet" href="https://jie.sh/poole.css">
+      <link rel="stylesheet" href="https://jie.sh/hyde.css">
+      <link rel="stylesheet" href="https://fonts.googleapis.com/css?family=PT+Sans:400,400italic,700|Abril+Fatface">
+
+      
+
+      
+      
+    </head>
+
+    <body class="theme-base-0d ">
+        
+            <div class="sidebar">
+                <div class="container sidebar-sticky">
+                    <div class="sidebar-about">
+                        
+                            <a href="https:&#x2F;&#x2F;jie.sh"><h1>jie.sh</h1></a>
+                            
+                            <p class="lead">走出去，看看世界</p>
+                            
+                        
+                    </div>
+
+                    <ul class="sidebar-nav">
+                        
+                        
+                        <li class="sidebar-nav-item"><a href="&#x2F;tags">Tags</a></li>
+                        
+                        <li class="sidebar-nav-item"><a href="&#x2F;categories">Categories</a></li>
+                        
+                        <li class="sidebar-nav-item"><a href="https:&#x2F;&#x2F;c.jie.sh">给忙碌者的育儿攻略</a></li>
+                        
+                        <li class="sidebar-nav-item"><a href="https:&#x2F;&#x2F;c.jie.sh&#x2F;gallery">多多的作品</a></li>
+                        
+                        <li class="sidebar-nav-item"><a href="https:&#x2F;&#x2F;weibo.com&#x2F;u&#x2F;1763952531">微博：陈杰要骑车</a></li>
+                        
+                        
+                    </ul>
+                </div>
+            </div>
+        
+
+        <div class="content container">
+            
+<div class="post">
+  <h1 class="post-title">联手Copilot用Rust编写Redis - 第一章</h1>
+  <span class="post-date">2024-05-01</span>
+  <p>接<a href="https://jie.sh/copilot-redis/">上回</a>，我们继续用 Copilot 辅助编写 Redis 的简化版。今天是五一，祝所有打工人节日快乐！</p>
+<h2 id="ren-wu">任务</h2>
+<ul>
+<li>实现简单的 <code>Redis</code> 协议解析。</li>
+<li>实现 <code>Ping/Pong</code> 指令。</li>
+</ul>
+<h2 id="kai-shi">开始</h2>
+<p><strong>pythias</strong>: 我们已经完成了一个简单的TCPServer，现在我们需要解析Redis协议。RESP3的文档是 https://github.com/redis/redis-specifications/blob/master/protocol/RESP3.md ，你可以看一下。如果你已经了解 RESP3，请回答&quot;已了解&quot;</p>
+<p><strong>GitHub Copilot</strong>: &quot;已了解&quot;</p>
+<p><strong>pythias</strong>: OK，那么现在开始写解析器，为了后续编码方便，我们需要调整一下代码结构，目前我们只有一个 main.rs 文件，你有什么建议吗？</p>
+<p><strong>GitHub Copilot</strong>: 对于大型项目，建议将代码分解为多个模块，每个模块都在其自己的文件中。这样可以使代码更易于管理和理解。以下是一种可能的组织结构：</p>
+<ol>
+<li><code>main.rs</code>: 主程序入口点，处理程序启动和初始化。</li>
+<li><code>server.rs</code>: 包含服务器相关的代码，如启动服务器，接收连接等。</li>
+<li><code>client.rs</code>: 包含客户端处理的代码，如读取和写入数据等。</li>
+<li><code>protocol.rs</code>: 包含解析和生成RESP3协议的代码。</li>
+<li><code>command.rs</code>: 包含处理Redis命令的代码。</li>
+</ol>
+<p>这样，每个文件都有明确的职责，使得代码更易于维护和扩展。</p>
+<p><strong>pythias</strong>: 你的建议很好，我们按照你的建议来组织代码。首先，我们创建一个新的文件 <code>protocol.rs</code>，然后在 <code>main.rs</code> 中引入它。你可以帮我写一下 <code>protocol.rs</code> 的内容吗？</p>
+<p>当然可以。在 <code>protocol.rs</code> 文件中，我们首先定义一个 <code>Protocol</code> 结构体，它将包含解析 RESP3 协议所需的状态。然后，我们可以添加一个 <code>new</code> 函数来创建一个新的 <code>Protocol</code> 实例，以及一个 <code>parse</code> 函数来解析输入数据。</p>
+<p>这是一个基本的 <code>protocol.rs</code> 文件的示例：</p>
+<pre data-lang="rust" style="background-color:#2b303b;color:#c0c5ce;" class="language-rust "><code class="language-rust" data-lang="rust"><span style="color:#b48ead;">pub struct </span><span>Protocol {
+</span><span>    </span><span style="color:#65737e;">// 这里可以添加你需要的字段
+</span><span>}
+</span><span>
+</span><span style="color:#b48ead;">impl </span><span>Protocol {
+</span><span>    </span><span style="color:#b48ead;">pub fn </span><span style="color:#8fa1b3;">new</span><span>() -&gt; </span><span style="color:#b48ead;">Self </span><span>{
+</span><span>        Protocol {
+</span><span>            </span><span style="color:#65737e;">// 初始化字段
+</span><span>        }
+</span><span>    }
+</span><span>
+</span><span>    </span><span style="color:#b48ead;">pub fn </span><span style="color:#8fa1b3;">parse</span><span>(&amp;</span><span style="color:#b48ead;">mut </span><span style="color:#bf616a;">self</span><span>, </span><span style="color:#bf616a;">data</span><span>: &amp;[</span><span style="color:#b48ead;">u8</span><span>]) -&gt; Result&lt;(), String&gt; {
+</span><span>        </span><span style="color:#65737e;">// 在这里实现解析逻辑
+</span><span>        Ok(())
+</span><span>    }
+</span><span>}
+</span></code></pre>
+<p>然后，在 <code>main.rs</code> 文件中，你可以这样引入 <code>protocol</code> 模块：</p>
+<pre data-lang="rust" style="background-color:#2b303b;color:#c0c5ce;" class="language-rust "><code class="language-rust" data-lang="rust"><span style="color:#b48ead;">mod </span><span>protocol;
+</span><span>
+</span><span style="color:#b48ead;">fn </span><span style="color:#8fa1b3;">main</span><span>() {
+</span><span>    </span><span style="color:#b48ead;">let mut</span><span> protocol = protocol::Protocol::new();
+</span><span>    </span><span style="color:#65737e;">// ...
+</span><span>}
+</span></code></pre>
+<p>请注意，这只是一个基本的框架，你需要根据 RESP3 协议的具体要求来实现 <code>parse</code> 函数。</p>
+<p><strong>pythias</strong>: 谢谢你的帮助，我会继续完善 <code>protocol.rs</code> 文件。接下来，我们将在 <code>protocol.rs</code> 中实现 RESP3 协议的解析逻辑。</p>
+<p><strong>GitHub Copilot</strong>: 很好，如果你在实现 RESP3 协议解析逻辑时遇到任何问题，或者需要帮助，随时向我询问。</p>
+<h2 id="xie-yi">协议</h2>
+<p><strong>pythias</strong>: 你已经对RESP3有一定了解，它包括多种类型，每种类型有不同的开头和组织方式。我们先实现一个简单的解析器，只解析简单的字符串类型。你可以帮我写一下吗？</p>
+<p><strong>GitHub Copilot</strong>: 当然可以。在 RESP3 协议中，简单字符串以 '+' 开头，后跟字符串内容，最后以 '\r\n' 结束。我们可以在 <code>Protocol</code> 结构体中添加一个 <code>parse_simple_string</code> 方法来处理这种类型。</p>
+<p>这是一个基本的实现：</p>
+<pre data-lang="rust" style="background-color:#2b303b;color:#c0c5ce;" class="language-rust "><code class="language-rust" data-lang="rust"><span style="color:#b48ead;">impl </span><span>Protocol {
+</span><span>    </span><span style="color:#65737e;">// ...
+</span><span>
+</span><span>    </span><span style="color:#b48ead;">pub fn </span><span style="color:#8fa1b3;">parse_simple_string</span><span>(&amp;</span><span style="color:#b48ead;">mut </span><span style="color:#bf616a;">self</span><span>, </span><span style="color:#bf616a;">data</span><span>: &amp;[</span><span style="color:#b48ead;">u8</span><span>]) -&gt; Result&lt;String, String&gt; {
+</span><span>        </span><span style="color:#b48ead;">let</span><span> data_str = std::str::from_utf8(data).</span><span style="color:#96b5b4;">map_err</span><span>(|_| &quot;</span><span style="color:#a3be8c;">Invalid UTF-8 sequence</span><span>&quot;)?;
+</span><span>        </span><span style="color:#b48ead;">if </span><span>!data_str.</span><span style="color:#96b5b4;">starts_with</span><span>(&#39;</span><span style="color:#a3be8c;">+</span><span>&#39;) {
+</span><span>            </span><span style="color:#b48ead;">return </span><span>Err(&quot;</span><span style="color:#a3be8c;">Not a simple string</span><span>&quot;.</span><span style="color:#96b5b4;">to_string</span><span>());
+</span><span>        }
+</span><span>
+</span><span>        </span><span style="color:#b48ead;">let</span><span> end = data_str.</span><span style="color:#96b5b4;">find</span><span>(&quot;</span><span style="color:#96b5b4;">\r\n</span><span>&quot;).</span><span style="color:#96b5b4;">ok_or</span><span>(&quot;</span><span style="color:#a3be8c;">No end of line</span><span>&quot;)?;
+</span><span>        </span><span style="color:#b48ead;">let</span><span> content = &amp;data_str[</span><span style="color:#d08770;">1</span><span>..end];
+</span><span>
+</span><span>        Ok(content.</span><span style="color:#96b5b4;">to_string</span><span>())
+</span><span>    }
+</span><span>}
+</span></code></pre>
+<p>这个函数首先检查输入数据是否以 '+' 开头，然后查找 '\r\n'。如果找到，它将返回字符串的内容。如果任何检查失败，它将返回一个错误。</p>
+<p><strong>pythias</strong>: 需要根据不同类型进行解析，把<code>pub fn parse(&amp;mut self, data: &amp;[u8]) -&gt; Result&lt;(), String&gt;</code>完善一下。</p>
+<p><strong>GitHub Copilot</strong>: 当然可以。在 <code>parse</code> 函数中，我们可以首先检查输入数据的第一个字符，然后根据它调用相应的解析函数。在这个例子中，我们只有 <code>parse_simple_string</code> 函数，所以我们只检查 '+' 字符。</p>
+<p>这是一个基本的实现：</p>
+<pre data-lang="rust" style="background-color:#2b303b;color:#c0c5ce;" class="language-rust "><code class="language-rust" data-lang="rust"><span style="color:#b48ead;">impl </span><span>Protocol {
+</span><span>    </span><span style="color:#65737e;">// ...
+</span><span>
+</span><span>    </span><span style="color:#b48ead;">pub fn </span><span style="color:#8fa1b3;">parse</span><span>(&amp;</span><span style="color:#b48ead;">mut </span><span style="color:#bf616a;">self</span><span>, </span><span style="color:#bf616a;">data</span><span>: &amp;[</span><span style="color:#b48ead;">u8</span><span>]) -&gt; Result&lt;(), String&gt; {
+</span><span>        </span><span style="color:#b48ead;">if</span><span> data.</span><span style="color:#96b5b4;">is_empty</span><span>() {
+</span><span>            </span><span style="color:#b48ead;">return </span><span>Err(&quot;</span><span style="color:#a3be8c;">Empty input</span><span>&quot;.</span><span style="color:#96b5b4;">to_string</span><span>());
+</span><span>        }
+</span><span>
+</span><span>        </span><span style="color:#b48ead;">match</span><span> data[</span><span style="color:#d08770;">0</span><span>] as </span><span style="color:#b48ead;">char </span><span>{
+</span><span>            &#39;</span><span style="color:#a3be8c;">+</span><span>&#39; =&gt; {
+</span><span>                </span><span style="color:#b48ead;">let</span><span> result = </span><span style="color:#bf616a;">self</span><span>.</span><span style="color:#96b5b4;">parse_simple_string</span><span>(data)?;
+</span><span>                println!(&quot;</span><span style="color:#a3be8c;">Parsed simple string: </span><span style="color:#d08770;">{}</span><span>&quot;, result);
+</span><span>            }
+</span><span>            _ =&gt; </span><span style="color:#b48ead;">return </span><span>Err(&quot;</span><span style="color:#a3be8c;">Unknown type</span><span>&quot;.</span><span style="color:#96b5b4;">to_string</span><span>()),
+</span><span>        }
+</span><span>
+</span><span>        Ok(())
+</span><span>    }
+</span><span>
+</span><span>    </span><span style="color:#65737e;">// ...
+</span><span>}
+</span></code></pre>
+<p>这个函数首先检查输入数据是否为空。然后，它检查第一个字符，如果是 '+'，它将调用 <code>parse_simple_string</code> 函数。如果解析成功，它将打印解析的字符串。如果第一个字符是未知类型，它将返回一个错误。</p>
+<p><strong>pythias</strong>: 好的，现在我们把Protocol的解析集成到Server的<code>handle_connection</code>里，看是否能正常运作。</p>
+<p><strong>GitHub Copilot</strong>: 好的，我们可以在 <code>handle_connection</code> 函数中创建一个 <code>Protocol</code> 实例，并使用它来解析从客户端接收到的数据。这是一个基本的实现：</p>
+<p>在 <code>server.rs</code> 文件中：</p>
+<pre data-lang="rust" style="background-color:#2b303b;color:#c0c5ce;" class="language-rust "><code class="language-rust" data-lang="rust"><span style="color:#b48ead;">use crate</span><span>::protocol::Protocol;
+</span><span>
+</span><span style="color:#65737e;">// ...
+</span><span>
+</span><span style="color:#b48ead;">fn </span><span style="color:#8fa1b3;">handle_connection</span><span>(&amp;</span><span style="color:#b48ead;">mut </span><span style="color:#bf616a;">self</span><span>, </span><span style="color:#bf616a;">stream</span><span>: TcpStream) {
+</span><span>    </span><span style="color:#b48ead;">let mut</span><span> protocol = Protocol::new();
+</span><span>
+</span><span>    </span><span style="color:#65737e;">// ...
+</span><span>
+</span><span>    </span><span style="color:#b48ead;">let mut</span><span> buffer = [</span><span style="color:#d08770;">0</span><span>; </span><span style="color:#d08770;">512</span><span>];
+</span><span>    stream.</span><span style="color:#96b5b4;">read</span><span>(&amp;</span><span style="color:#b48ead;">mut</span><span> buffer).</span><span style="color:#96b5b4;">unwrap</span><span>();
+</span><span>
+</span><span>    </span><span style="color:#b48ead;">match</span><span> protocol.</span><span style="color:#96b5b4;">parse</span><span>(&amp;buffer) {
+</span><span>        Ok(_) =&gt; println!(&quot;</span><span style="color:#a3be8c;">Successfully parsed message</span><span>&quot;),
+</span><span>        Err(e) =&gt; eprintln!(&quot;</span><span style="color:#a3be8c;">Failed to parse message: </span><span style="color:#d08770;">{}</span><span>&quot;, e),
+</span><span>    }
+</span><span>
+</span><span>    </span><span style="color:#65737e;">// ...
+</span><span>}
+</span></code></pre>
+<p>这个函数首先创建一个 <code>Protocol</code> 实例，然后读取从客户端接收到的数据到缓冲区。然后，它使用 <code>Protocol::parse</code> 函数来解析数据。如果解析成功，它将打印一条消息。如果解析失败，它将打印一个错误消息。</p>
+<p><strong>pythias</strong>: how can I use echo &amp; nc to test</p>
+<p><strong>GitHub Copilot</strong>: You can use <code>echo</code> and <code>nc</code> (netcat) to send a simple string to your server. Here's how you can do it:</p>
+<ol>
+<li>
+<p>Open a terminal and start your server.</p>
+</li>
+<li>
+<p>Open another terminal and use the following command to send a simple string to your server:</p>
+</li>
+</ol>
+<pre data-lang="bash" style="background-color:#2b303b;color:#c0c5ce;" class="language-bash "><code class="language-bash" data-lang="bash"><span style="color:#96b5b4;">echo </span><span style="color:#bf616a;">-e </span><span>&quot;</span><span style="color:#a3be8c;">+OK\r\n</span><span>&quot; | </span><span style="color:#bf616a;">nc</span><span> localhost 7878
+</span></code></pre>
+<p>This command will send the string &quot;+OK\r\n&quot; to your server running on localhost at port 7878. The <code>-e</code> option in <code>echo</code> command enables interpretation of backslash escapes, which allows us to use &quot;\r\n&quot; to represent a carriage return and a line feed.</p>
+<p>Your server should receive this string and parse it using the <code>Protocol::parse</code> function.</p>
+<blockquote>
+<p>执行 <code>cargo run</code> 启动服务器，然后在另一个终端执行 <code>echo -e &quot;+OK\r\n&quot; | nc localhost 7878</code> 发送字符串到服务器。</p>
+</blockquote>
+<pre data-lang="bash" style="background-color:#2b303b;color:#c0c5ce;" class="language-bash "><code class="language-bash" data-lang="bash"><span style="color:#bf616a;">➜</span><span>  ai-redis git:(master) </span><span style="color:#bf616a;">✗</span><span> cargo run
+</span><span>   </span><span style="color:#bf616a;">Compiling</span><span> ai-redis v0.1.0 (/mnt/e/work/github/ai-redis)
+</span><span>    </span><span style="color:#bf616a;">Finished</span><span> dev </span><span style="color:#b48ead;">[</span><span>unoptimized + debuginfo</span><span style="color:#b48ead;">]</span><span> target(s) </span><span style="color:#bf616a;">in</span><span> 1.68s
+</span><span>     </span><span style="color:#bf616a;">Running </span><span>`</span><span style="color:#bf616a;">target/debug/ai-redis</span><span>`
+</span><span style="color:#bf616a;">Parsed</span><span> simple string: OK
+</span><span style="color:#bf616a;">Successfully</span><span> parsed message
+</span></code></pre>
+<h2 id="zhi-ling-jie-xi">指令解析</h2>
+<p><strong>pythias</strong>: 通过阅读RESP3的文档，我们了解到其实一个指令是多个基础类型的集合 <code>&lt;aggregate-type-char&gt;&lt;numelements&gt;&lt;CR&gt;&lt;LF&gt; ... numelements other types ...</code>，比如PING指令就是 <code>*1\r\n$4\r\nPING\r\n</code>。为此我们需要修改之前的解析器，你可以帮我写一下吗？</p>
+<p><strong>GitHub Copilot</strong>: 首先，我们需要在 <code>Protocol</code> 结构体中添加一个字段来存储解析的结果。然后，我们需要修改 <code>parse</code> 方法以处理聚合类型。我们还需要添加一个新的方法 <code>parse_aggregate</code> 来解析聚合类型的数据。</p>
+<p>以下是修改后的代码：</p>
+<pre data-lang="rust" style="background-color:#2b303b;color:#c0c5ce;" class="language-rust "><code class="language-rust" data-lang="rust"><span style="color:#b48ead;">pub struct </span><span>Protocol {
+</span><span>    </span><span style="color:#bf616a;">result</span><span>: Vec&lt;String&gt;, </span><span style="color:#65737e;">// 添加一个字段来存储解析的结果
+</span><span>}
+</span><span>
+</span><span style="color:#b48ead;">impl </span><span>Protocol {
+</span><span>    </span><span style="color:#b48ead;">pub fn </span><span style="color:#8fa1b3;">new</span><span>() -&gt; </span><span style="color:#b48ead;">Self </span><span>{
+</span><span>        Protocol {
+</span><span>            result: Vec::new(), </span><span style="color:#65737e;">// 初始化字段
+</span><span>        }
+</span><span>    }
+</span><span>
+</span><span>    </span><span style="color:#b48ead;">pub fn </span><span style="color:#8fa1b3;">parse</span><span>(&amp;</span><span style="color:#b48ead;">mut </span><span style="color:#bf616a;">self</span><span>, </span><span style="color:#bf616a;">data</span><span>: &amp;[</span><span style="color:#b48ead;">u8</span><span>]) -&gt; Result&lt;(), String&gt; {
+</span><span>        </span><span style="color:#b48ead;">if</span><span> data.</span><span style="color:#96b5b4;">is_empty</span><span>() {
+</span><span>            </span><span style="color:#b48ead;">return </span><span>Err(&quot;</span><span style="color:#a3be8c;">Empty input</span><span>&quot;.</span><span style="color:#96b5b4;">to_string</span><span>());
+</span><span>        }
+</span><span>
+</span><span>        </span><span style="color:#b48ead;">match</span><span> data[</span><span style="color:#d08770;">0</span><span>] as </span><span style="color:#b48ead;">char </span><span>{
+</span><span>            &#39;</span><span style="color:#a3be8c;">*</span><span>&#39; =&gt; {
+</span><span>                </span><span style="color:#bf616a;">self</span><span>.</span><span style="color:#96b5b4;">parse_aggregate</span><span>(data)?; </span><span style="color:#65737e;">// 处理聚合类型
+</span><span>            }
+</span><span>            &#39;</span><span style="color:#a3be8c;">+</span><span>&#39; =&gt; {
+</span><span>                </span><span style="color:#b48ead;">let</span><span> result = </span><span style="color:#bf616a;">self</span><span>.</span><span style="color:#96b5b4;">parse_simple_string</span><span>(data)?;
+</span><span>                println!(&quot;</span><span style="color:#a3be8c;">Parsed simple string: </span><span style="color:#d08770;">{}</span><span>&quot;, result);
+</span><span>            }
+</span><span>            _ =&gt; </span><span style="color:#b48ead;">return </span><span>Err(&quot;</span><span style="color:#a3be8c;">Unknown type</span><span>&quot;.</span><span style="color:#96b5b4;">to_string</span><span>()),
+</span><span>        }
+</span><span>        
+</span><span>        Ok(())
+</span><span>    }
+</span><span>
+</span><span>    </span><span style="color:#b48ead;">pub fn </span><span style="color:#8fa1b3;">parse_aggregate</span><span>(&amp;</span><span style="color:#b48ead;">mut </span><span style="color:#bf616a;">self</span><span>, </span><span style="color:#bf616a;">data</span><span>: &amp;[</span><span style="color:#b48ead;">u8</span><span>]) -&gt; Result&lt;(), String&gt; {
+</span><span>        </span><span style="color:#b48ead;">let</span><span> data_str = std::str::from_utf8(data).</span><span style="color:#96b5b4;">map_err</span><span>(|_| &quot;</span><span style="color:#a3be8c;">Invalid UTF-8 sequence</span><span>&quot;)?;
+</span><span>        </span><span style="color:#b48ead;">if </span><span>!data_str.</span><span style="color:#96b5b4;">starts_with</span><span>(&#39;</span><span style="color:#a3be8c;">*</span><span>&#39;) {
+</span><span>            </span><span style="color:#b48ead;">return </span><span>Err(&quot;</span><span style="color:#a3be8c;">Not an aggregate type</span><span>&quot;.</span><span style="color:#96b5b4;">to_string</span><span>());
+</span><span>        }
+</span><span>
+</span><span>        </span><span style="color:#b48ead;">let</span><span> end = data_str.</span><span style="color:#96b5b4;">find</span><span>(&quot;</span><span style="color:#96b5b4;">\r\n</span><span>&quot;).</span><span style="color:#96b5b4;">ok_or</span><span>(&quot;</span><span style="color:#a3be8c;">No end of line</span><span>&quot;)?;
+</span><span>        </span><span style="color:#b48ead;">let</span><span> num_elements: </span><span style="color:#b48ead;">usize </span><span>= data_str[</span><span style="color:#d08770;">1</span><span>..end].</span><span style="color:#96b5b4;">parse</span><span>().</span><span style="color:#96b5b4;">map_err</span><span>(|_| &quot;</span><span style="color:#a3be8c;">Invalid number of elements</span><span>&quot;)?;
+</span><span>
+</span><span>        </span><span style="color:#b48ead;">let mut</span><span> start = end + </span><span style="color:#d08770;">2</span><span>; </span><span style="color:#65737e;">// Skip &quot;\r\n&quot;
+</span><span>        </span><span style="color:#b48ead;">for </span><span>_ in </span><span style="color:#d08770;">0</span><span>..num_elements {
+</span><span>            </span><span style="color:#b48ead;">let</span><span> end = data_str[start..].</span><span style="color:#96b5b4;">find</span><span>(&quot;</span><span style="color:#96b5b4;">\r\n</span><span>&quot;).</span><span style="color:#96b5b4;">ok_or</span><span>(&quot;</span><span style="color:#a3be8c;">No end of line</span><span>&quot;)?;
+</span><span>            </span><span style="color:#b48ead;">let</span><span> element = &amp;data_str[start..start+end];
+</span><span>            </span><span style="color:#bf616a;">self</span><span>.result.</span><span style="color:#96b5b4;">push</span><span>(element.</span><span style="color:#96b5b4;">to_string</span><span>());
+</span><span>            start += end + </span><span style="color:#d08770;">2</span><span>; </span><span style="color:#65737e;">// Skip &quot;\r\n&quot;
+</span><span>        }
+</span><span>
+</span><span>        Ok(())
+</span><span>    }
+</span><span>
+</span><span>    </span><span style="color:#65737e;">// ... 其他方法 ...
+</span><span>}
+</span></code></pre>
+<p>这段代码首先检查输入数据的第一个字符是否为 '*'，如果是，则调用 <code>parse_aggregate</code> 方法来解析聚合类型的数据。<code>parse_aggregate</code> 方法首先获取元素的数量，然后解析每个元素，并将其添加到结果中。</p>
+<blockquote>
+<p>执行 <code>cargo run</code> 启动服务器，然后在另一个终端执行 <code>echo -e &quot;*1\r\n$4\r\nPING\r\n&quot; | nc localhost 7878</code> 发送字符串到服务器。</p>
+</blockquote>
+<pre data-lang="bash" style="background-color:#2b303b;color:#c0c5ce;" class="language-bash "><code class="language-bash" data-lang="bash"><span>   </span><span style="color:#bf616a;">Compiling</span><span> ai-redis v0.1.0 (/mnt/e/work/github/ai-redis)
+</span><span>    </span><span style="color:#bf616a;">Finished</span><span> dev </span><span style="color:#b48ead;">[</span><span>unoptimized + debuginfo</span><span style="color:#b48ead;">]</span><span> target(s) </span><span style="color:#bf616a;">in</span><span> 1.90s
+</span><span>     </span><span style="color:#bf616a;">Running </span><span>`</span><span style="color:#bf616a;">target/debug/ai-redis</span><span>`
+</span><span style="color:#bf616a;">Successfully</span><span> parsed message
+</span></code></pre>
+<p><strong>pythias</strong>: 很好，我们已经实现了简单的 RESP3 协议解析器。接下来，我们根据不同的指令进行不同的处理，首先我们先实现 <code>PING</code> 指令</p>
+<p><strong>GitHub Copilot</strong>: 好的，我们可以在 <code>Protocol</code> 结构体中添加一个 <code>handle_command</code> 方法来处理 <code>PING</code> 指令。这个方法将检查解析的结果是否为 <code>PING</code>，如果是，它将返回 <code>PONG</code>。</p>
+<p>这是一个简单的实现：</p>
+<pre data-lang="rust" style="background-color:#2b303b;color:#c0c5ce;" class="language-rust "><code class="language-rust" data-lang="rust"><span style="color:#b48ead;">impl </span><span>Protocol {
+</span><span>    </span><span style="color:#65737e;">// ...
+</span><span>
+</span><span>    </span><span style="color:#b48ead;">pub fn </span><span style="color:#8fa1b3;">handle_command</span><span>(&amp;</span><span style="color:#bf616a;">self</span><span>) -&gt; Result&lt;String, String&gt; {
+</span><span>        </span><span style="color:#b48ead;">if </span><span style="color:#bf616a;">self</span><span>.result.</span><span style="color:#96b5b4;">is_empty</span><span>() {
+</span><span>            </span><span style="color:#b48ead;">return </span><span>Err(&quot;</span><span style="color:#a3be8c;">No command to handle</span><span>&quot;.</span><span style="color:#96b5b4;">to_string</span><span>());
+</span><span>        }
+</span><span>
+</span><span>        </span><span style="color:#b48ead;">match </span><span style="color:#bf616a;">self</span><span>.result[</span><span style="color:#d08770;">0</span><span>].</span><span style="color:#96b5b4;">as_str</span><span>() {
+</span><span>            &quot;</span><span style="color:#a3be8c;">PING</span><span>&quot; =&gt; Ok(&quot;</span><span style="color:#a3be8c;">PONG</span><span>&quot;.</span><span style="color:#96b5b4;">to_string</span><span>()),
+</span><span>            _ =&gt; Err(&quot;</span><span style="color:#a3be8c;">Unknown command</span><span>&quot;.</span><span style="color:#96b5b4;">to_string</span><span>()),
+</span><span>        }
+</span><span>    }
+</span><span>}
+</span></code></pre>
+<p>在这个实现中，我们首先检查 <code>result</code> 是否为空。如果为空，我们返回一个错误，表示没有命令可以处理。然后，我们检查 <code>result</code> 的第一个元素是否为 <code>PING</code>。如果是，我们返回 <code>PONG</code>。如果不是，我们返回一个错误，表示命令未知。</p>
+<p><strong>pythias</strong>: 这个 handle_command 写在哪个地方，parse 方法还是 parse_aggergate 里？</p>
+<p><strong>GitHub Copilot</strong>: <code>handle_command</code> 应该是一个单独的方法，不应该写在 <code>parse</code> 或 <code>parse_aggregate</code> 方法里。这是因为 <code>parse</code> 和 <code>parse_aggregate</code> 的职责是解析输入的数据，而 <code>handle_command</code> 的职责是处理解析后的结果。</p>
+<p>你可以在 <code>parse</code> 方法之后添加 <code>handle_command</code> 方法。这样，你可以先调用 <code>parse</code> 方法解析输入的数据，然后调用 <code>handle_command</code> 方法处理解析后的结果。</p>
+<p>这是一个可能的实现：</p>
+<pre data-lang="rust" style="background-color:#2b303b;color:#c0c5ce;" class="language-rust "><code class="language-rust" data-lang="rust"><span style="color:#b48ead;">impl </span><span>Protocol {
+</span><span>    </span><span style="color:#65737e;">// ...
+</span><span>
+</span><span>    </span><span style="color:#b48ead;">pub fn </span><span style="color:#8fa1b3;">parse</span><span>(&amp;</span><span style="color:#b48ead;">mut </span><span style="color:#bf616a;">self</span><span>, </span><span style="color:#bf616a;">data</span><span>: &amp;[</span><span style="color:#b48ead;">u8</span><span>]) -&gt; Result&lt;(), String&gt; {
+</span><span>        </span><span style="color:#65737e;">// ...
+</span><span>    }
+</span><span>
+</span><span>    </span><span style="color:#b48ead;">pub fn </span><span style="color:#8fa1b3;">parse_aggregate</span><span>(&amp;</span><span style="color:#b48ead;">mut </span><span style="color:#bf616a;">self</span><span>, </span><span style="color:#bf616a;">data</span><span>: &amp;[</span><span style="color:#b48ead;">u8</span><span>]) -&gt; Result&lt;(), String&gt; {
+</span><span>        </span><span style="color:#65737e;">// ...
+</span><span>    }
+</span><span>
+</span><span>    </span><span style="color:#b48ead;">pub fn </span><span style="color:#8fa1b3;">handle_command</span><span>(&amp;</span><span style="color:#bf616a;">self</span><span>) -&gt; Result&lt;String, String&gt; {
+</span><span>        </span><span style="color:#b48ead;">if </span><span style="color:#bf616a;">self</span><span>.result.</span><span style="color:#96b5b4;">is_empty</span><span>() {
+</span><span>            </span><span style="color:#b48ead;">return </span><span>Err(&quot;</span><span style="color:#a3be8c;">No command to handle</span><span>&quot;.</span><span style="color:#96b5b4;">to_string</span><span>());
+</span><span>        }
+</span><span>
+</span><span>        </span><span style="color:#b48ead;">match </span><span style="color:#bf616a;">self</span><span>.result[</span><span style="color:#d08770;">0</span><span>].</span><span style="color:#96b5b4;">as_str</span><span>() {
+</span><span>            &quot;</span><span style="color:#a3be8c;">PING</span><span>&quot; =&gt; Ok(&quot;</span><span style="color:#a3be8c;">PONG</span><span>&quot;.</span><span style="color:#96b5b4;">to_string</span><span>()),
+</span><span>            _ =&gt; Err(&quot;</span><span style="color:#a3be8c;">Unknown command</span><span>&quot;.</span><span style="color:#96b5b4;">to_string</span><span>()),
+</span><span>        }
+</span><span>    }
+</span><span>}
+</span></code></pre>
+<p>在这个实现中，你可以这样使用 <code>Protocol</code>：</p>
+<pre data-lang="rust" style="background-color:#2b303b;color:#c0c5ce;" class="language-rust "><code class="language-rust" data-lang="rust"><span style="color:#b48ead;">let mut</span><span> protocol = Protocol::new();
+</span><span>protocol.</span><span style="color:#96b5b4;">parse</span><span>(data)?;
+</span><span style="color:#b48ead;">let</span><span> response = protocol.</span><span style="color:#96b5b4;">handle_command</span><span>()?;
+</span></code></pre>
+<p><strong>pythias</strong>: 执行时出现了语法错误</p>
+<pre data-lang="bash" style="background-color:#2b303b;color:#c0c5ce;" class="language-bash "><code class="language-bash" data-lang="bash"><span style="color:#bf616a;">error[E0277]:</span><span> the `</span><span style="color:#bf616a;">?</span><span>` operator can only be used in a function that returns `</span><span style="color:#bf616a;">Result</span><span>` or `</span><span style="color:#bf616a;">Option</span><span>` (or another type that implements 
+</span><span>`</span><span style="color:#bf616a;">FromResidual</span><span>`)
+</span><span>  </span><span style="color:#bf616a;">--</span><span>&gt; src/main.rs:32:45
+</span><span>   |
+</span><span style="color:#bf616a;">19 </span><span>| </span><span style="color:#bf616a;">fn</span><span> handle_connection(mut stream: TcpStream) {
+</span><span>   | </span><span style="color:#bf616a;">-------------------------------------------</span><span> this function should return `</span><span style="color:#bf616a;">Result</span><span>` or `</span><span style="color:#bf616a;">Option</span><span>` to accept `</span><span style="color:#bf616a;">?</span><span>`
+</span><span style="color:#bf616a;">...
+</span><span style="color:#bf616a;">32 </span><span>|     </span><span style="color:#96b5b4;">let</span><span> response = protocol.handle_command()?;
+</span><span>   |                                             </span><span style="color:#bf616a;">^</span><span> cannot use the `</span><span style="color:#bf616a;">?</span><span>` operator in a function that returns `()`
+</span><span>   |
+</span><span>   = </span><span style="color:#bf616a;">help:</span><span> the trait `</span><span style="color:#bf616a;">FromResidual</span><span>&lt;Result&lt;Infallible, String&gt;&gt;` is not implemented for `()`
+</span><span>
+</span><span style="color:#bf616a;">For</span><span> more information about this error, try `</span><span style="color:#bf616a;">rustc --explain</span><span> E0277`.
+</span><span style="color:#bf616a;">error:</span><span> could not compile `</span><span style="color:#bf616a;">ai-redis</span><span>` (bin &quot;</span><span style="color:#a3be8c;">ai-redis</span><span>&quot;) </span><span style="color:#bf616a;">due</span><span> to 1 previous error
+</span></code></pre>
+<p><strong>GitHub Copilot</strong>: 这个错误是因为你在一个返回类型为 <code>()</code> 的函数中使用了 <code>?</code> 操作符。<code>?</code> 操作符用于处理 <code>Result</code> 或 <code>Option</code> 类型的错误，如果函数返回类型不是 <code>Result</code> 或 <code>Option</code>，则不能使用 <code>?</code> 操作符。</p>
+<p>你需要将 <code>handle_connection</code> 函数的返回类型改为 <code>Result&lt;(), String&gt;</code>，这样就可以在函数中使用 <code>?</code> 操作符了。同时，你需要在函数的最后返回 <code>Ok(())</code> 表示函数成功执行。</p>
+<p>这是修改后的 <code>handle_connection</code> 函数：</p>
+<pre data-lang="rust" style="background-color:#2b303b;color:#c0c5ce;" class="language-rust "><code class="language-rust" data-lang="rust"><span style="color:#b48ead;">fn </span><span style="color:#8fa1b3;">handle_connection</span><span>(</span><span style="color:#b48ead;">mut </span><span style="color:#bf616a;">stream</span><span>: TcpStream) -&gt; Result&lt;(), String&gt; {
+</span><span>    </span><span style="color:#b48ead;">let mut</span><span> buffer = [</span><span style="color:#d08770;">0</span><span>; </span><span style="color:#d08770;">512</span><span>];
+</span><span>    stream.</span><span style="color:#96b5b4;">read</span><span>(&amp;</span><span style="color:#b48ead;">mut</span><span> buffer).</span><span style="color:#96b5b4;">unwrap</span><span>();
+</span><span>
+</span><span>    </span><span style="color:#b48ead;">let mut</span><span> protocol = Protocol::new();
+</span><span>    protocol.</span><span style="color:#96b5b4;">parse</span><span>(&amp;buffer)?;
+</span><span>    </span><span style="color:#b48ead;">let</span><span> response = protocol.</span><span style="color:#96b5b4;">handle_command</span><span>()?;
+</span><span>
+</span><span>    stream.</span><span style="color:#96b5b4;">write</span><span>(response.</span><span style="color:#96b5b4;">as_bytes</span><span>()).</span><span style="color:#96b5b4;">unwrap</span><span>();
+</span><span>    stream.</span><span style="color:#96b5b4;">flush</span><span>().</span><span style="color:#96b5b4;">unwrap</span><span>();
+</span><span>
+</span><span>    Ok(())
+</span><span>}
+</span></code></pre>
+<p>在这个函数中，我们首先读取 <code>stream</code> 中的数据到 <code>buffer</code> 中，然后创建一个新的 <code>Protocol</code>，并使用 <code>buffer</code> 中的数据调用 <code>parse</code> 方法。然后，我们调用 <code>handle_command</code> 方法处理解析后的结果，并将结果写入 <code>stream</code> 中。最后，我们返回 <code>Ok(())</code> 表示函数成功执行。</p>
+<blockquote>
+<p>执行 <code>cargo run</code> 启动服务器，然后在另一个终端执行 <code>echo -e &quot;*1\r\n$4\r\nPING\r\n&quot; | nc localhost 7878</code> 发送字符串到服务器。</p>
+</blockquote>
+<pre data-lang="bash" style="background-color:#2b303b;color:#c0c5ce;" class="language-bash "><code class="language-bash" data-lang="bash"><span>   </span><span style="color:#bf616a;">Compiling</span><span> ai-redis v0.1.0 (/mnt/e/work/github/ai-redis)
+</span><span>    </span><span style="color:#bf616a;">Finished</span><span> dev </span><span style="color:#b48ead;">[</span><span>unoptimized + debuginfo</span><span style="color:#b48ead;">]</span><span> target(s) </span><span style="color:#bf616a;">in</span><span> 1.90s
+</span><span>     </span><span style="color:#bf616a;">Running </span><span>`</span><span style="color:#bf616a;">target/debug/ai-redis</span><span>`
+</span></code></pre>
+<p><strong>pythias</strong>: 经过 <code>echo -e &quot;*1\r\n$4\r\nPING\r\n&quot; | nc localhost 7878</code> 测试收不到信息，请帮忙添加DEBUG信息</p>
+<p><strong>GitHub Copilot</strong>: 你可以使用 <code>println!</code> 宏在 Rust 中添加调试信息。这个宏将信息打印到控制台，这样你就可以看到程序的运行情况。</p>
+<p>这是添加调试信息后的 <code>handle_connection</code> 函数：</p>
+<pre data-lang="rust" style="background-color:#2b303b;color:#c0c5ce;" class="language-rust "><code class="language-rust" data-lang="rust"><span style="color:#b48ead;">fn </span><span style="color:#8fa1b3;">handle_connection</span><span>(</span><span style="color:#b48ead;">mut </span><span style="color:#bf616a;">stream</span><span>: TcpStream) -&gt; Result&lt;(), String&gt; {
+</span><span>    </span><span style="color:#b48ead;">let mut</span><span> buffer = [</span><span style="color:#d08770;">0</span><span>; </span><span style="color:#d08770;">512</span><span>];
+</span><span>    stream.</span><span style="color:#96b5b4;">read</span><span>(&amp;</span><span style="color:#b48ead;">mut</span><span> buffer).</span><span style="color:#96b5b4;">unwrap</span><span>();
+</span><span>
+</span><span>    println!(&quot;</span><span style="color:#a3be8c;">Received: </span><span style="color:#d08770;">{:?}</span><span>&quot;, String::from_utf8_lossy(&amp;buffer));
+</span><span>
+</span><span>    </span><span style="color:#b48ead;">let mut</span><span> protocol = Protocol::new();
+</span><span>    protocol.</span><span style="color:#96b5b4;">parse</span><span>(&amp;buffer)?;
+</span><span>    </span><span style="color:#b48ead;">let</span><span> response = protocol.</span><span style="color:#96b5b4;">handle_command</span><span>()?;
+</span><span>
+</span><span>    println!(&quot;</span><span style="color:#a3be8c;">Response: </span><span style="color:#d08770;">{:?}</span><span>&quot;, response);
+</span><span>
+</span><span>    stream.</span><span style="color:#96b5b4;">write</span><span>(response.</span><span style="color:#96b5b4;">as_bytes</span><span>()).</span><span style="color:#96b5b4;">unwrap</span><span>();
+</span><span>    stream.</span><span style="color:#96b5b4;">flush</span><span>().</span><span style="color:#96b5b4;">unwrap</span><span>();
+</span><span>
+</span><span>    Ok(())
+</span><span>}
+</span></code></pre>
+<p>在这个函数中，我们首先打印接收到的数据，然后解析数据并处理命令，然后打印响应的数据。这样，你就可以看到程序接收到的数据和响应的数据，这对于调试程序非常有用。</p>
+<p><strong>pythias</strong>: 执行过程发现只有Received没有Response，与是在<code>handle_command</code>里也添加了<code>println!(&quot;Handling command: {:?}&quot;, self.result);</code>，然后再次测试，等到的日志是 <code>Handling command: [&quot;$4&quot;]</code>，所以<code>parse_aggregate</code>里并没有安排REPS3的解析逻辑，你需要修改一下。</p>
+<p><strong>GitHub Copilot</strong>: 看起来你的 <code>parse_aggregate</code> 方法没有正确解析 RESP3 协议的数据。你需要确保它能正确解析出命令和参数。</p>
+<p>这是一个可能的 <code>parse_aggregate</code> 方法的实现：</p>
+<pre data-lang="rust" style="background-color:#2b303b;color:#c0c5ce;" class="language-rust "><code class="language-rust" data-lang="rust"><span style="color:#b48ead;">pub fn </span><span style="color:#8fa1b3;">parse_aggregate</span><span>(&amp;</span><span style="color:#b48ead;">mut </span><span style="color:#bf616a;">self</span><span>, </span><span style="color:#bf616a;">data</span><span>: &amp;[</span><span style="color:#b48ead;">u8</span><span>]) -&gt; Result&lt;(), String&gt; {
+</span><span>    </span><span style="color:#b48ead;">let</span><span> data = String::from_utf8_lossy(data);
+</span><span>    </span><span style="color:#b48ead;">let mut</span><span> lines = data.</span><span style="color:#96b5b4;">split</span><span>(&quot;</span><span style="color:#96b5b4;">\r\n</span><span>&quot;);
+</span><span>
+</span><span>    </span><span style="color:#b48ead;">let</span><span> command_line = </span><span style="color:#b48ead;">match</span><span> lines.</span><span style="color:#96b5b4;">next</span><span>() {
+</span><span>        Some(line) =&gt; line,
+</span><span>        None =&gt; </span><span style="color:#b48ead;">return </span><span>Err(&quot;</span><span style="color:#a3be8c;">No command line found</span><span>&quot;.</span><span style="color:#96b5b4;">to_string</span><span>()),
+</span><span>    };
+</span><span>
+</span><span>    </span><span style="color:#b48ead;">if </span><span>!command_line.</span><span style="color:#96b5b4;">starts_with</span><span>(&quot;</span><span style="color:#a3be8c;">*</span><span>&quot;) {
+</span><span>        </span><span style="color:#b48ead;">return </span><span>Err(&quot;</span><span style="color:#a3be8c;">Invalid command line</span><span>&quot;.</span><span style="color:#96b5b4;">to_string</span><span>());
+</span><span>    }
+</span><span>
+</span><span>    </span><span style="color:#b48ead;">let</span><span> count: </span><span style="color:#b48ead;">usize </span><span>= command_line[</span><span style="color:#d08770;">1</span><span>..].</span><span style="color:#96b5b4;">parse</span><span>().</span><span style="color:#96b5b4;">map_err</span><span>(|_| &quot;</span><span style="color:#a3be8c;">Invalid count</span><span>&quot;.</span><span style="color:#96b5b4;">to_string</span><span>())?;
+</span><span>
+</span><span>    </span><span style="color:#b48ead;">for </span><span>_ in </span><span style="color:#d08770;">0</span><span>..count {
+</span><span>        </span><span style="color:#b48ead;">let</span><span> length_line = </span><span style="color:#b48ead;">match</span><span> lines.</span><span style="color:#96b5b4;">next</span><span>() {
+</span><span>            Some(line) =&gt; line,
+</span><span>            None =&gt; </span><span style="color:#b48ead;">return </span><span>Err(&quot;</span><span style="color:#a3be8c;">No length line found</span><span>&quot;.</span><span style="color:#96b5b4;">to_string</span><span>()),
+</span><span>        };
+</span><span>
+</span><span>        </span><span style="color:#b48ead;">if </span><span>!length_line.</span><span style="color:#96b5b4;">starts_with</span><span>(&quot;</span><span style="color:#a3be8c;">$</span><span>&quot;) {
+</span><span>            </span><span style="color:#b48ead;">return </span><span>Err(&quot;</span><span style="color:#a3be8c;">Invalid length line</span><span>&quot;.</span><span style="color:#96b5b4;">to_string</span><span>());
+</span><span>        }
+</span><span>
+</span><span>        </span><span style="color:#b48ead;">let</span><span> length: </span><span style="color:#b48ead;">usize </span><span>= length_line[</span><span style="color:#d08770;">1</span><span>..].</span><span style="color:#96b5b4;">parse</span><span>().</span><span style="color:#96b5b4;">map_err</span><span>(|_| &quot;</span><span style="color:#a3be8c;">Invalid length</span><span>&quot;.</span><span style="color:#96b5b4;">to_string</span><span>())?;
+</span><span>
+</span><span>        </span><span style="color:#b48ead;">let</span><span> data_line = </span><span style="color:#b48ead;">match</span><span> lines.</span><span style="color:#96b5b4;">next</span><span>() {
+</span><span>            Some(line) =&gt; line,
+</span><span>            None =&gt; </span><span style="color:#b48ead;">return </span><span>Err(&quot;</span><span style="color:#a3be8c;">No data line found</span><span>&quot;.</span><span style="color:#96b5b4;">to_string</span><span>()),
+</span><span>        };
+</span><span>
+</span><span>        </span><span style="color:#b48ead;">if</span><span> data_line.</span><span style="color:#96b5b4;">len</span><span>() != length {
+</span><span>            </span><span style="color:#b48ead;">return </span><span>Err(&quot;</span><span style="color:#a3be8c;">Data line length mismatch</span><span>&quot;.</span><span style="color:#96b5b4;">to_string</span><span>());
+</span><span>        }
+</span><span>
+</span><span>        </span><span style="color:#bf616a;">self</span><span>.result.</span><span style="color:#96b5b4;">push</span><span>(data_line.</span><span style="color:#96b5b4;">to_string</span><span>());
+</span><span>    }
+</span><span>
+</span><span>    Ok(())
+</span><span>}
+</span></code></pre>
+<p>在这个实现中，我们首先解析命令行，然后解析每个参数的长度和数据。如果任何一步出错，我们都返回一个错误。如果所有的参数都成功解析，我们将它们添加到 <code>result</code> 中，然后返回 <code>Ok(())</code>。</p>
+<p><strong>pythias</strong>: 很好执行结果如下，但是用redis-cli测试时出现了错误，你可以帮我看一下吗？</p>
+<pre data-lang="bash" style="background-color:#2b303b;color:#c0c5ce;" class="language-bash "><code class="language-bash" data-lang="bash"><span>    </span><span style="color:#bf616a;">Finished</span><span> dev </span><span style="color:#b48ead;">[</span><span>unoptimized + debuginfo</span><span style="color:#b48ead;">]</span><span> target(s) </span><span style="color:#bf616a;">in</span><span> 1.73s
+</span><span>     </span><span style="color:#bf616a;">Running </span><span>`</span><span style="color:#bf616a;">target/debug/ai-redis</span><span>`
+</span><span style="color:#bf616a;">Received: </span><span>&quot;</span><span style="color:#a3be8c;">*1\r\n</span><span>$</span><span style="color:#bf616a;">4</span><span style="color:#a3be8c;">\r\nPING\r\n</span><span>&quot;
+</span><span style="color:#bf616a;">Handling</span><span> command: </span><span style="color:#b48ead;">[</span><span>&quot;</span><span style="color:#a3be8c;">PING</span><span>&quot;</span><span style="color:#b48ead;">]
+</span><span style="color:#bf616a;">Response: </span><span>&quot;</span><span style="color:#a3be8c;">PONG</span><span>&quot;
+</span></code></pre>
+<pre data-lang="bash" style="background-color:#2b303b;color:#c0c5ce;" class="language-bash "><code class="language-bash" data-lang="bash"><span style="color:#bf616a;">➜</span><span>  ai-redis git:(master) </span><span style="color:#bf616a;">✗</span><span> echo</span><span style="color:#bf616a;"> -e </span><span>&quot;</span><span style="color:#a3be8c;">*1\r\n</span><span style="color:#96b5b4;">\$</span><span style="color:#a3be8c;">4\r\nPING\r\n</span><span>&quot; | </span><span style="color:#bf616a;">nc</span><span> localhost 7878
+</span><span style="color:#bf616a;">PONG</span><span>%
+</span><span>
+</span><span style="color:#bf616a;">➜</span><span>  ai-redis git:(master) </span><span style="color:#bf616a;">✗</span><span> redis-cli</span><span style="color:#bf616a;"> -p</span><span> 7878 PING
+</span><span style="color:#bf616a;">Error:</span><span> Protocol error, got &quot;</span><span style="color:#a3be8c;">P</span><span>&quot; as reply type byte
+</span></code></pre>
+<p><strong>GitHub Copilot</strong>: <code>redis-cli</code> 工具期望的响应格式是 RESP（Redis Serialization Protocol）。在 RESP 中，一个简单字符串的回复是以 &quot;+&quot; 开头的。所以，当你的服务器回复 &quot;PONG&quot; 时，应该是 &quot;+PONG&quot;，而不仅仅是 &quot;PONG&quot;。</p>
+<p>你需要修改 <code>handle_command</code> 方法，使其在回复 &quot;PONG&quot; 时，添加 &quot;+&quot; 前缀。这是修改后的 <code>handle_command</code> 方法：</p>
+<pre data-lang="rust" style="background-color:#2b303b;color:#c0c5ce;" class="language-rust "><code class="language-rust" data-lang="rust"><span style="color:#b48ead;">pub fn </span><span style="color:#8fa1b3;">handle_command</span><span>(&amp;</span><span style="color:#bf616a;">self</span><span>) -&gt; Result&lt;String, String&gt; {
+</span><span>    </span><span style="color:#b48ead;">match </span><span style="color:#bf616a;">self</span><span>.result.</span><span style="color:#96b5b4;">first</span><span>() {
+</span><span>        Some(command) </span><span style="color:#b48ead;">if</span><span> command == &quot;</span><span style="color:#a3be8c;">PING</span><span>&quot; =&gt; Ok(&quot;</span><span style="color:#a3be8c;">+PONG</span><span style="color:#96b5b4;">\r\n</span><span>&quot;.</span><span style="color:#96b5b4;">to_string</span><span>()),
+</span><span>        _ =&gt; Err(&quot;</span><span style="color:#a3be8c;">Unknown command</span><span>&quot;.</span><span style="color:#96b5b4;">to_string</span><span>()),
+</span><span>    }
+</span><span>}
+</span></code></pre>
+<p>在这个方法中，我们检查 <code>result</code> 的第一个元素是否是 &quot;PING&quot;。如果是，我们返回 &quot;+PONG\r\n&quot;。如果不是，我们返回一个错误。这样，你的服务器就能正确响应 <code>redis-cli</code> 的 PING 命令了。</p>
+<blockquote>
+<p>执行 <code>cargo run</code> 启动服务器，然后在另一个终端执行 <code>redis-cli -p 7878 PING</code> 发送字符串到服务器。</p>
+</blockquote>
+<pre data-lang="bash" style="background-color:#2b303b;color:#c0c5ce;" class="language-bash "><code class="language-bash" data-lang="bash"><span style="color:#bf616a;">➜</span><span>  ai-redis git:(master) </span><span style="color:#bf616a;">✗</span><span> cargo run
+</span><span>   </span><span style="color:#bf616a;">Compiling</span><span> ai-redis v0.1.0 (/mnt/e/work/github/ai-redis)
+</span><span>    </span><span style="color:#bf616a;">Finished</span><span> dev </span><span style="color:#b48ead;">[</span><span>unoptimized + debuginfo</span><span style="color:#b48ead;">]</span><span> target(s) </span><span style="color:#bf616a;">in</span><span> 1.64s
+</span><span>     </span><span style="color:#bf616a;">Running </span><span>`</span><span style="color:#bf616a;">target/debug/ai-redis</span><span>`
+</span><span style="color:#bf616a;">Received: </span><span>&quot;</span><span style="color:#a3be8c;">*1\r\n</span><span>$</span><span style="color:#bf616a;">4</span><span style="color:#a3be8c;">\r\nPING\r\n</span><span>&quot;
+</span><span style="color:#bf616a;">Handling</span><span> command: </span><span style="color:#b48ead;">[</span><span>&quot;</span><span style="color:#a3be8c;">PING</span><span>&quot;</span><span style="color:#b48ead;">]
+</span><span style="color:#bf616a;">Response: </span><span>&quot;</span><span style="color:#a3be8c;">+PONG\r\n</span><span>&quot;
+</span><span style="color:#bf616a;">Received: </span><span>&quot;</span><span style="color:#a3be8c;">*1\r\n</span><span>$</span><span style="color:#bf616a;">4</span><span style="color:#a3be8c;">\r\nPING\r\n\n</span><span>&quot;
+</span><span style="color:#bf616a;">Handling</span><span> command: </span><span style="color:#b48ead;">[</span><span>&quot;</span><span style="color:#a3be8c;">PING</span><span>&quot;</span><span style="color:#b48ead;">]
+</span><span style="color:#bf616a;">Response: </span><span>&quot;</span><span style="color:#a3be8c;">+PONG\r\n</span><span>&quot;
+</span><span>
+</span></code></pre>
+<h2 id="qi-ta-zhang-jie">其他章节</h2>
+<ul>
+<li><a href="https://jie.sh/copilot-redis/">开始</a></li>
+<li><a href="https://jie.sh/copilot-redis-01/">第一章</a></li>
+</ul>
+
+</div>
+
+        </div>
+
+    </body>
+
+</html>
