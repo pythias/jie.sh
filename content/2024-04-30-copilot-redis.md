@@ -220,3 +220,8 @@ After updating `Cargo.toml`, try running `cargo run` again.
 ## 总结
 
 Copilot 在这个过程中帮助我完成了一个简单的TCP Server的创建，但是在配置Cargo时有一些问题。我发现Copilot在处理问题时，有时候会忽略之前的问题，导致后续的问题无法解决。但是总体来说，Copilot还是一个很好的工具，可以帮助我们快速完成一些简单的任务。
+
+## 其他章节
+
+- [开始](https://jie.sh/copilot-redis/)
+- [第一章](https://jie.sh/copilot-redis-01/)

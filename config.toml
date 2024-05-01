@@ -6,6 +6,7 @@ highlight_code = true
 generate_feed = true
 build_search_index = true
 theme = "hyde"
+sort_by = "date"
 
 taxonomies = [
     { name = "tags" },
