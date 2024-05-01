@@ -1,7 +1,7 @@
 base_url = "https://jie.sh"
 compile_sass = true
 title = "jie.sh"
-description = "陈杰的小站，记录生活点滴、挖坑和填坑经历、修路和寻山过程等等，转载需注明来源"
+description = "走出去，看看世界"
 highlight_code = true
 generate_feed = true
 build_search_index = true
