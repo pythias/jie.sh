@@ -1,7 +1,7 @@
 +++
 title = "关于Java的性能测试"
 description = "在斤斤计较的过程中提升"
-date = 2020-06-19T11:06:17Z
+date = 2020-06-19
 
 [taxonomies]
 tags = ["Java", "benchmark", "jmh"]
@@ -11,11 +11,9 @@ categories = ["programming"]
 
 今天读到一篇InfoQ上的[文章](https://xie.infoq.cn/article/cae1455171caa912d103a5b8e)，针对阿里「Java开发手册」中日志输出规范中关于字符串拼接和占位符的性能提出质疑，规范如下：
 
-```code
-【强制】在日志输出时，字符串变量之间的拼接使用占位符的方式。
-说明：因为 String 字符串的拼接会使用 StringBuilder 的 append()方式，有一定的性能损耗。使用占位符仅是替换动作，可以有效提升性能。
-正例：logger.debug("Processing trade with id: {} and symbol: {}", id, symbol);
-```
+    【强制】在日志输出时，字符串变量之间的拼接使用占位符的方式。
+    说明：因为 String 字符串的拼接会使用 StringBuilder 的 append()方式，有一定的性能损耗。使用占位符仅是替换动作，可以有效提升性能。
+    正例：logger.debug("Processing trade with id: {} and symbol: {}", id, symbol);
 
 突然也想写点关于性能测试的文章来开启blog
 
@@ -62,7 +60,7 @@ public class Sample001 {
 
 执行10轮的结果如下：
 
-```text
+```bash
 # javac Sample001.java && java -Xms1G -Xmx1G Sample001
 Round 000, finished 100000 in 40.474 ms
 Round 001, finished 100000 in 37.225 ms
@@ -78,7 +76,7 @@ Round 009, finished 100000 in 18.273 ms
 
 大概五次以后性能从约40ms提升至15ms，把代码改一下`int count = 500_000;`验证一下，确实了当`cat()`执行了五十万次左右的时候性能上了一个台阶：
 
-```text
+```bash
 # javac Sample001.java && java -Xms1G -Xmx1G Sample001
 Round 000, finished 500000 in 178.598 ms
 Round 001, finished 500000 in 68.093 ms
@@ -305,7 +303,7 @@ public void testInfoBuild5() {
 
 执行结果如下：
 
-```text
+```bash
 # Run complete. Total time: 00:10:43
 Benchmark                      Mode  Cnt           Score           Error  Units
 MyBenchmark.testDebug         thrpt    9  1130576386.310 ± 111537882.560  ops/s
@@ -360,7 +358,7 @@ if (log.isDebugEnabled()) {
 
 *测试环境（测试结果不是很严谨，因为测试时还在作别的，特别是写日志时磁盘IO影响较大，但相对数据及整体结论还是没有太多影响）：*
 
-```text
+```bash
 iMac (Retina 4K, 21.5-inch, Late 2015)
 3.1 GHz Quad-Core Intel Core i5
 8 GB 1867 MHz DDR3

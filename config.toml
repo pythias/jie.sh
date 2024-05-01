@@ -2,25 +2,28 @@ base_url = "https://jie.sh"
 compile_sass = true
 title = "jie.sh"
 description = "走出去，看看世界"
-highlight_code = true
-generate_feed = true
-build_search_index = true
 theme = "hyde"
+
 sort_by = "date"
+sort_order = "asc"
 
 taxonomies = [
     { name = "tags" },
     { name = "categories" },
 ]
 
+[markdown]
+highlight_code = true
+code_block_line_numbers = false
+
 [extra]
 hyde_sticky = true
 hyde_reverse = false
 hyde_theme = "theme-base-0d"
 hyde_links = [
-    {url = "/about", name = "About"},
     {url = "/tags", name = "Tags"},
     {url = "/categories", name = "Categories"},
     {url = "https://c.jie.sh", name = "给忙碌者的育儿攻略"},
+    {url = "https://c.jie.sh/gallery", name = "多多的作品"},
     {url = "https://weibo.com/u/1763952531", name = "微博：陈杰要骑车"},
 ]

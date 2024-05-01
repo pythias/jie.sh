@@ -1,15 +1,13 @@
 +++
 title = "联手Copilot用Rust编写Redis - 第一章"
 description = "联手Copilot用Rust编写的简化版Redis"
-date = 2024-04-30T13:48:44Z
+date = 2024-05-01
 
 [taxonomies]
 tags = ["AI", "Copilot", "Rust", "Redis"]
 categories = ["programming"]
 
 +++
-
-## 其二
 
 接[上回](https://jie.sh/copilot-redis/)，我们继续用 Copilot 辅助编写 Redis 的简化版。今天是五一，祝所有打工人节日快乐！
 
@@ -186,7 +184,7 @@ Your server should receive this string and parse it using the `Protocol::parse` 
 
 > 执行 `cargo run` 启动服务器，然后在另一个终端执行 `echo -e "+OK\r\n" | nc localhost 7878` 发送字符串到服务器。
 
-```plaintext
+```bash
 ➜  ai-redis git:(master) ✗ cargo run
    Compiling ai-redis v0.1.0 (/mnt/e/work/github/ai-redis)
     Finished dev [unoptimized + debuginfo] target(s) in 1.68s
@@ -262,7 +260,7 @@ impl Protocol {
 
 > 执行 `cargo run` 启动服务器，然后在另一个终端执行 `echo -e "*1\r\n$4\r\nPING\r\n" | nc localhost 7878` 发送字符串到服务器。
 
-```plaintext
+```bash
    Compiling ai-redis v0.1.0 (/mnt/e/work/github/ai-redis)
     Finished dev [unoptimized + debuginfo] target(s) in 1.90s
      Running `target/debug/ai-redis`
@@ -337,7 +335,7 @@ let response = protocol.handle_command()?;
 
 **pythias**: 执行时出现了语法错误
 
-```plaintext
+```bash
 error[E0277]: the `?` operator can only be used in a function that returns `Result` or `Option` (or another type that implements 
 `FromResidual`)
   --> src/main.rs:32:45
@@ -380,7 +378,7 @@ fn handle_connection(mut stream: TcpStream) -> Result<(), String> {
 
 > 执行 `cargo run` 启动服务器，然后在另一个终端执行 `echo -e "*1\r\n$4\r\nPING\r\n" | nc localhost 7878` 发送字符串到服务器。
 
-```plaintext
+```bash
    Compiling ai-redis v0.1.0 (/mnt/e/work/github/ai-redis)
     Finished dev [unoptimized + debuginfo] target(s) in 1.90s
      Running `target/debug/ai-redis`
@@ -468,7 +466,7 @@ pub fn parse_aggregate(&mut self, data: &[u8]) -> Result<(), String> {
 
 **pythias**: 很好执行结果如下，但是用redis-cli测试时出现了错误，你可以帮我看一下吗？
 
-```plaintext
+```bash
     Finished dev [unoptimized + debuginfo] target(s) in 1.73s
      Running `target/debug/ai-redis`
 Received: "*1\r\n$4\r\nPING\r\n"
@@ -476,7 +474,7 @@ Handling command: ["PING"]
 Response: "PONG"
 ```
 
-```plaintext
+```bash
 ➜  ai-redis git:(master) ✗ echo -e "*1\r\n\$4\r\nPING\r\n" | nc localhost 7878
 PONG%
 
@@ -501,7 +499,7 @@ pub fn handle_command(&self) -> Result<String, String> {
 
 > 执行 `cargo run` 启动服务器，然后在另一个终端执行 `redis-cli -p 7878 PING` 发送字符串到服务器。
 
-```plaintext
+```bash
 ➜  ai-redis git:(master) ✗ cargo run
    Compiling ai-redis v0.1.0 (/mnt/e/work/github/ai-redis)
     Finished dev [unoptimized + debuginfo] target(s) in 1.64s

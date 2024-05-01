@@ -1,7 +1,7 @@
 +++
 title = "联手Copilot用Rust编写Redis"
 description = "联手Copilot用Rust编写的简化版Redis"
-date = 2024-04-30T13:48:44Z
+date = 2024-04-30
 
 [taxonomies]
 tags = ["AI", "Copilot", "Rust", "Redis"]
@@ -196,7 +196,7 @@ The `Cargo.toml` file is incorrectly pointing to `main.rs` in the root directory
 
 Here's how your `Cargo.toml` should look:
 
-```plaintext
+```toml
 [package]
 name = "ai-redis"
 version = "0.1.0"
